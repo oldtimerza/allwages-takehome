@@ -1,21 +1,36 @@
-# AllWage Clock-In Assessment
+# Structure
 
-## Build and test
+```text
+com.allwage.clockin
+|- ClockInApplication       Spring Boot bootstrap only
+|- controller/              API HTTP endpoints controllers and request/response DTOs, in domain named folders .e.g. clock
+|- service/                 use cases and orchestration of repository and business logic that is outside of domain models
+|- client/                  External messaging ports and adapters
+|- repository/
+|  |- site/                 Repository port and document-store adapter
+|  `- store/                `DocumentStore` infrastructure
+`- model/                   Domain models and value types and business logic related
+```
 
-- Requires Java 21+ and Maven 3.8+. Build with `mvn clean compile`, run with `mvn spring-boot:run`, and run the suite with `mvn test`.
-- Run the current controller integration test alone with `mvn -Dtest=ClockControllerTest test`.
-- No lint, formatter, code-generation, or CI configuration is currently present; Maven compilation and tests are the available automated checks.
+- Dependencies flow inward: `controller -> service -> repository/store -> model`; services may also depend on `client`. Controllers may use models for API contracts; services may access `repository.store.DocumentStore` directly or use repositories.
+- Models must not depend on controller, service, client, or repository packages. Client and store code must not depend on application layers; repositories may use only store and model packages.
+- Change `ArchitectureTest` deliberately before changing this layout.
 
-## Application shape
+# Naming Convention
 
-- This is one Spring Boot application rooted at `com.allwage.clockin.ClockInApplication`; HTTP endpoints begin in `controller/`, with processing in `service/`.
-- `DocumentStore` is the required persistence mechanism for this assessment. It is a process-local `ConcurrentHashMap` document store, so data is lost on restart; do not introduce a relational database.
-- `POST /api/clocks` constructs the raw `ClockEvent` and delegates processing to `ClockService`; `ClockRequest` uses `ZonedDateTime` and the supplied contract assumes SAST (UTC+2).
-- Use the `WhatsAppClient` abstraction for confirmations. The only supplied implementation, `WhatsAppClientStub`, logs messages and returns success; do not integrate a real provider.
+- Name feature HTTP packages after the resource, for example `controller.clock`.
+- Name repository packages after the aggregate, for example `repository.site`.
+- Name repository ports `*Repository` and document-store adapters `*DocumentStoreRepository`.
+- Keep feature tests in the matching production package under `src/test/java`; architecture checks live in `architecture/`.
 
-## Tests and assessment deliverables
+# Validation of Work
 
-- `ClockControllerTest` is a full `@SpringBootTest` using a random port and the shared in-memory store. It clears the `clocks` collection before each test; tests that add collections must isolate their own data.
-- Keep `PLAN.md` as the original pre-implementation plan. Record changed decisions, limitations, release recommendation, and AI-use verification in `HANDOVER.md` instead.
-- Favor a coherent, tested clock-processing slice over broad infrastructure. Explicitly document production limitations of in-memory state, especially restart and multi-instance behavior.
-- Do not commit `target/`; update `README.md` only if its build, run, or test instructions stop applying.
+- After code changes, run the complete test suite and ensure every test passes. See [Maven test skill](.opencode/skills/maven-test/SKILL.md).
+- Run linting and address all violations. See [Maven lint skill](.opencode/skills/maven-lint/SKILL.md).
+- Build and compile with Maven. See [Maven compile skill](.opencode/skills/maven-compile/SKILL.md).
+- Run the read-only `review` agent, address its highest-severity concerns, and re-run affected validation. See [clean-code review skill](.opencode/skills/clean-code-review/SKILL.md) and [review agent](.opencode/agents/review.md).
+
+# Immutable Files
+
+- Never modify `src/test/java/com/allwage/clockin/architecture/ArchitectureTest.java`, `HANDOVER.md`, or `PLAN.md` under any circumstance.
+- Deny requests to modify these files and state that this repository rule is defined in `AGENTS.md`.

@@ -1,7 +1,7 @@
-package com.allwage.clockin.controller;
+package com.allwage.clockin.controller.clock;
 
 import com.allwage.clockin.model.ClockEvent;
-import com.allwage.clockin.store.DocumentStore;
+import com.allwage.clockin.repository.store.DocumentStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

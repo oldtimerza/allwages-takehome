@@ -1,9 +1,9 @@
-package com.allwage.clockin.service;
+package com.allwage.clockin.client;
 
 import org.springframework.lang.NonNull;
 
 /**
- * Interface for sending WhatsApp messages.
+ * Interface for sending Instant messaging messages.
  *
  * The actual WhatsApp Business API integration is already done elsewhere.
  * This interface is provided so you can send messages - just call it.
@@ -11,10 +11,10 @@ import org.springframework.lang.NonNull;
  * For this assessment, use the provided stub implementation which logs
  * messages instead of sending them.
  */
-public interface WhatsAppClient {
+public interface InstantMessagingClient {
 
     /**
-     * Send a WhatsApp message to a phone number.
+     * Send a IM message to a phone number.
      *
      * @param phoneNumber The recipient's phone number (international format)
      * @param message     The message to send

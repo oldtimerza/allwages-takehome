@@ -1,4 +1,4 @@
-package com.allwage.clockin.controller;
+package com.allwage.clockin.controller.clock;
 
 import com.allwage.clockin.model.ClockEvent.ClockType;
 import jakarta.validation.constraints.NotBlank;

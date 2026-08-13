@@ -1,7 +1,7 @@
 package com.allwage.clockin.service;
 
 import com.allwage.clockin.model.ClockEvent;
-import com.allwage.clockin.store.DocumentStore;
+import com.allwage.clockin.repository.store.DocumentStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;

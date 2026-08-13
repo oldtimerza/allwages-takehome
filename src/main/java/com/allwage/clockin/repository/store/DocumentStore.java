@@ -1,4 +1,4 @@
-package com.allwage.clockin.store;
+package com.allwage.clockin.repository.store;
 
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
