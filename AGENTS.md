@@ -1,3 +1,11 @@
+# Summary
+
+Customers employ people across farms, construction projects and other distributed job sites. Employees use an offline-capable mobile application to clock in and out.
+The goal of this application is to track clocks for employees that have been allocated onto teams for various geofenced zones as part of a work sites.
+The Employee will clock in via an app on their phone that will send a request to this app , that request could be sent at any time after the employee was there (i.e offline stored and sent later).
+Requests are validated for eligibility based on various configuration.
+Management can see clocks to manage employee time.
+
 # Structure
 
 ```text
@@ -29,6 +37,19 @@ com.allwage.clockin
 - Run linting and address all violations. See [Maven lint skill](.opencode/skills/maven-lint/SKILL.md).
 - Build and compile with Maven. See [Maven compile skill](.opencode/skills/maven-compile/SKILL.md).
 - Run the read-only `review` agent, address its highest-severity concerns, and re-run affected validation. See [clean-code review skill](.opencode/skills/clean-code-review/SKILL.md) and [review agent](.opencode/agents/review.md).
+
+# Test-Driven Development
+
+- Follow red-green-refactor for every behavior change: first add or change a focused test that expresses the requirement, run it to confirm the pre-change behavior fails, implement the minimum production change, then run the test to confirm it passes before refactoring.
+- After a test passes, prove that its assertion can detect the behavior by temporarily changing its assertion so that the current implementation must fail, and run it to confirm the failure.
+- Restore the assertion to the intended requirement, fix any production defect exposed by the check, and rerun the focused test. Never weaken, remove, or leave an intentionally failing assertion in a completed test.
+
+# Logging
+
+- Add structured, actionable logging at business-operation decision points and meaningful control-flow branches so production behavior can be traced.
+- Log error handling paths with the relevant safe identifiers, operation context, and exception details when available.
+- Use appropriate log levels: `INFO` for significant business operations, `WARN` for recoverable or unexpected conditions, and `ERROR` for failed operations requiring attention.
+- Do not log secrets, credentials, tokens, personal data beyond the minimum safe identifier, or routine internal details that create noise without diagnostic value.
 
 # Immutable Files
 
