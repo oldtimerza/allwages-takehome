@@ -1,5 +1,9 @@
 package com.allwage.clockin.controller.clock;
 
+import com.allwage.clockin.model.AuditEvent;
+import com.allwage.clockin.model.AuditEventType;
+import com.allwage.clockin.model.AuditReasonCode;
+import com.allwage.clockin.model.ClockAuditPayload;
 import com.allwage.clockin.model.ClockEvent;
 import com.allwage.clockin.repository.store.DocumentStore;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +30,7 @@ class ClockControllerTest {
     @BeforeEach
     void setUp() {
         store.clearCollection("clocks");
+        store.clearCollection("clock-audits");
     }
 
     @Test
@@ -59,6 +64,44 @@ class ClockControllerTest {
         List<ClockEvent> stored = store.findAll("clocks", ClockEvent.class);
         assertThat(stored).hasSize(1);
         assertThat(stored.getFirst().employeeId()).isEqualTo("emp-123");
+
+        List<AuditEvent> audits = store.findAll("clock-audits", AuditEvent.class);
+        assertThat(audits).hasSize(1);
+        AuditEvent audit = audits.getFirst();
+        assertThat(audit.type()).isEqualTo(AuditEventType.CLOCK_ACCEPTED);
+        assertThat(audit.clockEventId()).isEqualTo(response.getBody().id());
+        assertThat(audit.employeeId()).isEqualTo("emp-123");
+        assertThat(audit.correlationId()).isEqualTo(response.getHeaders().getFirst("X-Correlation-Id"));
+        assertThat(audit.payload()).isInstanceOf(ClockAuditPayload.class);
+        ClockAuditPayload payload = (ClockAuditPayload) audit.payload();
+        assertThat(payload.reasonCode()).isEqualTo(AuditReasonCode.CLOCK_ACCEPTED);
+    }
+
+    @Test
+    void invalidClockRequest_recordsRejectionAudit() {
+        String requestBody = """
+            {
+                "employeeId": "emp-123"
+            }
+            """;
+
+        ResponseEntity<Void> response = restTemplate.postForEntity(
+            "/api/clocks",
+            new org.springframework.http.HttpEntity<>(
+                requestBody,
+                createJsonHeaders()
+            ),
+            Void.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(store.findAll("clocks", ClockEvent.class)).isEmpty();
+        List<AuditEvent> audits = store.findAll("clock-audits", AuditEvent.class);
+        assertThat(audits).hasSize(1);
+        assertThat(audits.getFirst().type()).isEqualTo(AuditEventType.CLOCK_REJECTED);
+        assertThat(audits.getFirst().payload()).isInstanceOf(ClockAuditPayload.class);
+        ClockAuditPayload payload = (ClockAuditPayload) audits.getFirst().payload();
+        assertThat(payload.reasonCode()).isEqualTo(AuditReasonCode.REQUEST_VALIDATION_FAILED);
     }
 
     private org.springframework.http.HttpHeaders createJsonHeaders() {

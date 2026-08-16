@@ -14,5 +14,7 @@ Check the following:
 - SOLID concerns that are concrete in the changed code: mixed responsibilities, abstractions coupled to implementations, unsuitable dependencies, or interfaces that force irrelevant methods.
 - Established names and package placement: `controller.<resource>`, `repository.<aggregate>`, `*Repository`, `*DocumentStoreRepository`, and matching test packages.
 - Existing ArchUnit restrictions and Checkstyle violations.
+- Ensure good usage of descriptive and correct java docs and comments on classes and methods.
+- For cases where an audit trail for an object is required, make sure to re-use @Audited annotation.
 
 Address the highest-severity findings before completion. If no findings remain, state that and note any residual test or runtime risk.

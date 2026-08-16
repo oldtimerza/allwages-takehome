@@ -30,4 +30,4 @@ public record ClockRequest(
 
     @NotNull(message = "Clock type is required")
     ClockType type
-) {}
+) { }

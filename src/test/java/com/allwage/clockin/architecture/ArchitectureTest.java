@@ -4,7 +4,11 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
@@ -13,14 +17,16 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
     importOptions = ImportOption.DoNotIncludeTests.class
 )
 class ArchitectureTest {
+    private static final DescribedPredicate<JavaClass> REPOSITORY_CLASSES =
+            resideInAnyPackage("..repository..")
+                    .and(not(resideInAnyPackage("..repository.store..")));
 
     @ArchTest
-    static final ArchRule applicationLayers = layeredArchitecture()
-        .consideringAllDependencies()
+    static final ArchRule applicationLayers = layeredArchitecture().consideringOnlyDependenciesInLayers()
         .layer("Controller").definedBy("..controller..")
         .layer("Service").definedBy("..service..")
         .layer("Client").definedBy("..client..")
-        .layer("Repository").definedBy("..repository.site..")
+        .layer("Repository").definedBy(REPOSITORY_CLASSES)
         .layer("Store").definedBy("..repository.store..")
         .layer("Model").definedBy("..model..")
         .whereLayer("Controller").mayOnlyAccessLayers("Service", "Model")

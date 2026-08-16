@@ -1,5 +1,6 @@
 package com.allwage.clockin.repository.store;
 
+import java.util.HashMap;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -22,6 +24,28 @@ import java.util.stream.Collectors;
 public class DocumentStore {
 
     private final Map<String, Map<String, Object>> collections = new ConcurrentHashMap<>();
+    private final Object transactionLock = new Object();
+
+    /**
+     * Runs document mapping changes as one in-memory operation, restoring the previous mappings if it fails.
+     * Stored documents must be immutable because the store does not deep-copy document instances.
+     *
+     * @param operation operation that reads or writes documents
+     * @param <T> result type
+     * @return result of the operation
+     */
+    public @NonNull <T> T executeAtomically(@NonNull Supplier<T> operation) {
+        synchronized (transactionLock) {
+            Map<String, Map<String, Object>> snapshot = snapshotCollections();
+            try {
+                return operation.get();
+            } catch (RuntimeException | Error exception) {
+                collections.clear();
+                collections.putAll(snapshot);
+                throw exception;
+            }
+        }
+    }
 
     /**
      * Save a document to a collection.
@@ -31,9 +55,29 @@ public class DocumentStore {
      * @param document   The document to store
      */
     public <T> void save(@NonNull String collection, @NonNull String id, @NonNull T document) {
-        collections
-            .computeIfAbsent(collection, k -> new ConcurrentHashMap<>())
-            .put(id, document);
+        synchronized (transactionLock) {
+            collections
+                .computeIfAbsent(collection, k -> new ConcurrentHashMap<>())
+                .put(id, document);
+        }
+    }
+
+    /**
+     * Saves a document only when no document already has the supplied ID.
+     *
+     * @param collection collection that owns the document
+     * @param id document ID
+     * @param document document to store
+     * @param <T> document type
+     * @throws IllegalStateException when a document with the ID already exists
+     */
+    public <T> void saveIfAbsent(@NonNull String collection, @NonNull String id, @NonNull T document) {
+        synchronized (transactionLock) {
+            Map<String, Object> documents = collections.computeIfAbsent(collection, k -> new ConcurrentHashMap<>());
+            if (documents.putIfAbsent(id, document) != null) {
+                throw new IllegalStateException("Document already exists: " + id);
+            }
+        }
     }
 
     /**
@@ -46,15 +90,17 @@ public class DocumentStore {
      */
     @SuppressWarnings("unchecked")
     public @NonNull <T> Optional<T> findById(@NonNull String collection, @NonNull String id, @NonNull Class<T> type) {
-        Map<String, Object> col = collections.get(collection);
-        if (col == null) {
-            return Optional.empty();
+        synchronized (transactionLock) {
+            Map<String, Object> col = collections.get(collection);
+            if (col == null) {
+                return Optional.empty();
+            }
+            Object doc = col.get(id);
+            if (doc == null || !type.isInstance(doc)) {
+                return Optional.empty();
+            }
+            return Optional.of((T) doc);
         }
-        Object doc = col.get(id);
-        if (doc == null || !type.isInstance(doc)) {
-            return Optional.empty();
-        }
-        return Optional.of((T) doc);
     }
 
     /**
@@ -66,14 +112,16 @@ public class DocumentStore {
      */
     @SuppressWarnings("unchecked")
     public @NonNull <T> List<T> findAll(@NonNull String collection, @NonNull Class<T> type) {
-        Map<String, Object> col = collections.get(collection);
-        if (col == null) {
-            return List.of();
+        synchronized (transactionLock) {
+            Map<String, Object> col = collections.get(collection);
+            if (col == null) {
+                return List.of();
+            }
+            return col.values().stream()
+                .filter(type::isInstance)
+                .map(doc -> (T) doc)
+                .collect(Collectors.toList());
         }
-        return col.values().stream()
-            .filter(type::isInstance)
-            .map(doc -> (T) doc)
-            .collect(Collectors.toList());
     }
 
     /**
@@ -84,11 +132,13 @@ public class DocumentStore {
      * @return true if the document was deleted, false if it didn't exist
      */
     public boolean delete(@NonNull String collection, @NonNull String id) {
-        Map<String, Object> col = collections.get(collection);
-        if (col == null) {
-            return false;
+        synchronized (transactionLock) {
+            Map<String, Object> col = collections.get(collection);
+            if (col == null) {
+                return false;
+            }
+            return col.remove(id) != null;
         }
-        return col.remove(id) != null;
     }
 
     /**
@@ -97,6 +147,14 @@ public class DocumentStore {
      * @param collection The collection name
      */
     public void clearCollection(@NonNull String collection) {
-        collections.remove(collection);
+        synchronized (transactionLock) {
+            collections.remove(collection);
+        }
+    }
+
+    private Map<String, Map<String, Object>> snapshotCollections() {
+        Map<String, Map<String, Object>> snapshot = new HashMap<>();
+        collections.forEach((collection, documents) -> snapshot.put(collection, new ConcurrentHashMap<>(documents)));
+        return snapshot;
     }
 }

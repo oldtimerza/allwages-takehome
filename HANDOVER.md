@@ -14,4 +14,8 @@ Include:
 
 - First thing I'm doing is setting up my AI agents files so that I can safely move faster with agents.
 - This includes Linting, ArchUnit tests and various context files (AGENTS and SKILLS)
-- 
+
+- Can Geofences belong to multiple sites?
+- Replace Team when an employee is moved teams on the same site.
+
+- New assumption, Teams cannot be moved between sites. i.e the validations are related to a site at various granularity levels (i.e site, team ,employee)

@@ -22,7 +22,6 @@ com.allwage.clockin
 
 - Dependencies flow inward: `controller -> service -> repository/store -> model`; services may also depend on `client`. Controllers may use models for API contracts; services may access `repository.store.DocumentStore` directly or use repositories.
 - Models must not depend on controller, service, client, or repository packages. Client and store code must not depend on application layers; repositories may use only store and model packages.
-- Change `ArchitectureTest` deliberately before changing this layout.
 
 # Naming Convention
 
@@ -36,7 +35,8 @@ com.allwage.clockin
 - After code changes, run the complete test suite and ensure every test passes. See [Maven test skill](.opencode/skills/maven-test/SKILL.md).
 - Run linting and address all violations. See [Maven lint skill](.opencode/skills/maven-lint/SKILL.md).
 - Build and compile with Maven. See [Maven compile skill](.opencode/skills/maven-compile/SKILL.md).
-- Run the read-only `review` agent, address its highest-severity concerns, and re-run affected validation. See [clean-code review skill](.opencode/skills/clean-code-review/SKILL.md) and [review agent](.opencode/agents/review.md).
+- Run the read-only `review` adversarial agent to review and assess your changes, address its highest-severity concerns, and re-run affected validation. See [clean-code review skill](.opencode/skills/clean-code-review/SKILL.md) and [review agent](.opencode/agents/review.md).
+- If an ArchitectureTest failure occurs, then this means the underlying structure has changed. Ask the user with details around the chnge if they should update it before continuing.
 
 # Test-Driven Development
 

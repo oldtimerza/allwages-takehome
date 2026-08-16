@@ -2,6 +2,8 @@ package com.allwage.clockin.service;
 
 import com.allwage.clockin.model.ClockEvent;
 import com.allwage.clockin.repository.store.DocumentStore;
+import com.allwage.clockin.service.audit.Audited;
+import com.allwage.clockin.service.audit.ClockProcessingAuditMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -37,6 +39,7 @@ public class ClockService {
      * @param clockEvent The clock event to process
      * @return The saved clock event
      */
+    @Audited(mapper = ClockProcessingAuditMapper.class)
     public @NonNull ClockEvent processClock(@NonNull ClockEvent clockEvent) {
         log.info("Processing clock event: {} for employee {}",
             clockEvent.type(), clockEvent.employeeId());
