@@ -27,14 +27,14 @@ Audit events must not include raw request bodies, coordinates, phone numbers, cr
 
 The audit trail is a business record, not an application log. Structured logs remain useful for operations but cannot replace durable audit events.
 
-For an accepted clock, persist the clock event and its `ACCEPTED` audit event atomically:
+For every processed clock, persist the clock event with its original validation result and the matching audit event atomically:
 
-1. `clocks/{clockEventId}` stores the `ClockEvent`.
+1. `clocks/{clockEventId}` stores a `ValidatedClockEvent`, containing the original `ClockEvent` and its validation result.
 2. `clock-audits/{auditEventId}` stores the linked audit event.
 
 If either write fails, the request fails. The service must not return a success response or retain an accepted clock without the associated audit record. The current `DocumentStore` has independent writes only, so a generic atomic multi-document write is required at the store boundary. A production database implementation should use a transaction with the same contract.
 
-For rejections, persist only the audit event. This includes business-rule rejections and requests that fail controller-level validation. If the audit event cannot be written, return a server failure rather than the original rejection, because every submission attempt must be durably auditable.
+Business-rule rejections retain their `ClockEvent` and its `REJECTED` audit event so managers can review the original attempt. Requests that fail controller-level validation cannot produce a valid event and retain only their audit event. If an audit event cannot be written, return a server failure rather than the original rejection, because every submission attempt must be durably auditable.
 
 ### Implemented Baseline
 
@@ -65,7 +65,7 @@ The current implementation intentionally does not use a non-blocking outbox. If 
 | Condition | Clock event | Audit action | Example reason code |
 | --- | --- | --- | --- |
 | Valid and accepted | Persist atomically with audit event | `ACCEPTED` | `CLOCK_ACCEPTED` |
-| Valid but rejected by a business rule | Do not persist | `REJECTED` | `GEOFENCE_REJECTED` |
+| Valid but rejected by a business rule | Persist with original rejected result | `REJECTED` | `GEOFENCE_REJECTED` |
 | Missing or invalid request fields | Do not persist | `REJECTED` | `REQUEST_VALIDATION_FAILED` |
 | Malformed JSON or unreadable request | Do not persist | `REJECTED` | `REQUEST_MALFORMED` |
 | Processing or persistence failure | Do not persist accepted clock unless atomic operation completes | `FAILED` where persistence remains available | `PERSISTENCE_FAILED` |
@@ -78,12 +78,12 @@ Audit records should be read only through a management-authorized API when authe
 
 ## Idempotency
 
-Offline mobile submissions may be retried. Before relying on audit data for payroll dispute resolution, add a client-generated submission ID. Store it on the clock event and audit event so repeated delivery can be classified as a retry rather than a new clock attempt.
+Offline mobile submissions may be retried. Before relying on audit data for payroll dispute resolution, add a client-generated submission ID. Store it on a separate idempotency record so repeated delivery can be classified as a retry rather than a new clock attempt.
 
 ## Acceptance Tests
 
 1. An accepted submission creates one clock event and one linked `ACCEPTED` audit event.
-2. A business rejection creates no clock event and one `REJECTED` audit event with a stable reason code.
+2. A business rejection creates one clock event with its original rejected result and one `REJECTED` audit event with a stable reason code.
 3. Bean-validation failures and malformed JSON create audit events even though `ClockService` is not called.
 4. An audit persistence failure prevents a successful response and prevents an accepted clock from being retained.
 5. Audit events omit coordinates, raw request payloads, phone numbers, credentials, tokens, exception messages, and notification content.

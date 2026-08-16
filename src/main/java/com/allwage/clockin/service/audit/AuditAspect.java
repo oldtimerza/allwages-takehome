@@ -48,11 +48,27 @@ public class AuditAspect {
     public Object recordAudit(ProceedingJoinPoint joinPoint, Audited audited) throws Throwable {
         AuditMapper mapper = applicationContext.getBean(audited.mapper());
         AuditContext context = auditContextProvider.current();
+        if (!audited.auditSuccess()) {
+            return recordFailureOnlyInvocation(joinPoint, mapper, context);
+        }
         try {
             return store.executeAtomically(() -> recordSuccessfulInvocation(joinPoint, mapper, context));
         } catch (AuditedMethodFailure failure) {
             recordFailure(mapper, context, joinPoint.getArgs(), failure.getCause());
             throw failure.getCause();
+        }
+    }
+
+    private Object recordFailureOnlyInvocation(
+        ProceedingJoinPoint joinPoint,
+        AuditMapper mapper,
+        AuditContext context
+    ) throws Throwable {
+        try {
+            return joinPoint.proceed();
+        } catch (Throwable failure) {
+            recordFailure(mapper, context, joinPoint.getArgs(), failure);
+            throw failure;
         }
     }
 

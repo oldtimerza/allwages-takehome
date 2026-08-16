@@ -18,4 +18,12 @@ public @interface Audited {
      * @return audit mapper type
      */
     Class<? extends AuditMapper> mapper();
+
+    /**
+     * Whether the aspect should write a success audit event after the method returns.
+     * Services that write their success audit explicitly within a transaction can disable this.
+     *
+     * @return true when the aspect owns successful-operation audit writing
+     */
+    boolean auditSuccess() default true;
 }

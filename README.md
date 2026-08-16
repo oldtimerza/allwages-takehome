@@ -57,9 +57,9 @@ src/main/java/com/allwage/clockin/
 Clock in:
 ```bash
 curl -X POST http://localhost:8080/api/clocks \
-  -H "Content-Type: application/json" \
-  -d '{
-    "employeeId": "emp-123",
+   -H "Content-Type: application/json" \
+   -d '{
+     "employeeId": "emp-123",
     "timestamp": "2024-01-15T09:00:00+02:00",
     "latitude": -26.2041,
     "longitude": 28.0473,

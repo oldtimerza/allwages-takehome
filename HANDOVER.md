@@ -22,7 +22,8 @@ Include:
 - Assuming we are not checking roles and any other access control in this initial setup (out of scope for now), but for productoin security will need to be tight.
 - Intentionally didn't introduce libraries like mapstruct or project lombok to keep this service dependency light.
 - Validate results thorugh e2e Hurl journey files that test a user journey. 
-
+- New assumption multiple overlapping geofences from different sites for the same employee should result in a rejcted ambiguous reason so that a manager can view the clockin and correct.
+- 
 
 
 

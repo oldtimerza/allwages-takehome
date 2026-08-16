@@ -19,7 +19,7 @@ public class WhatsAppClientStub implements InstantMessagingClient {
 
     @Override
     public boolean sendMessage(@NonNull String phoneNumber, @NonNull String message) {
-        log.info("📱 WhatsApp message to {}: {}", phoneNumber, message);
+        log.info("WhatsApp message accepted by the client stub");
         return true;
     }
 }

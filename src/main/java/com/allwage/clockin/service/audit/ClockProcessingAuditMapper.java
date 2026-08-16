@@ -5,6 +5,8 @@ import com.allwage.clockin.model.AuditReasonCode;
 import com.allwage.clockin.model.AuditSource;
 import com.allwage.clockin.model.ClockAuditPayload;
 import com.allwage.clockin.model.ClockEvent;
+import com.allwage.clockin.model.ClockValidationResult;
+import com.allwage.clockin.model.ValidatedClockEvent;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -20,12 +22,24 @@ public class ClockProcessingAuditMapper implements AuditMapper {
 
     @Override
     public AuditDraft onSuccess(AuditInvocation invocation) {
-        ClockEvent clockEvent = clockEvent(invocation.result());
+        return auditFor(validatedClockEvent(invocation.result()));
+    }
+
+    /**
+     * Maps a persisted clock decision to an immutable audit draft.
+     *
+     * @param clockEvent processed clock event
+     * @return audit draft for the clock outcome
+     */
+    public AuditDraft auditFor(ValidatedClockEvent clockEvent) {
+        ClockValidationResult result = clockEvent.validationResult();
         return new AuditDraft(
-            clockEvent.id(),
-            clockEvent.employeeId(),
-            AuditEventType.CLOCK_ACCEPTED,
-            new ClockAuditPayload(AuditReasonCode.CLOCK_ACCEPTED, AuditSource.MOBILE_API, OK)
+            clockEvent.clockEvent().id(),
+            clockEvent.clockEvent().employeeId(),
+            result.decision() == ClockValidationResult.Decision.ACCEPTED
+                ? AuditEventType.CLOCK_ACCEPTED
+                : AuditEventType.CLOCK_REJECTED,
+            new ClockAuditPayload(reasonCodeFor(result.reason()), AuditSource.MOBILE_API, OK)
         );
     }
 
@@ -43,10 +57,21 @@ public class ClockProcessingAuditMapper implements AuditMapper {
         ));
     }
 
-    private ClockEvent clockEvent(Object result) {
-        if (result instanceof ClockEvent clockEvent) {
-            return clockEvent;
+    private ValidatedClockEvent validatedClockEvent(Object result) {
+        if (result instanceof ValidatedClockEvent validatedClockEvent) {
+            return validatedClockEvent;
         }
-        throw new IllegalArgumentException("Clock processing must return a clock event");
+        throw new IllegalArgumentException("Clock processing must return a validated clock event");
+    }
+
+    private AuditReasonCode reasonCodeFor(ClockValidationResult.Reason reason) {
+        return switch (reason) {
+            case ACCEPTED -> AuditReasonCode.CLOCK_ACCEPTED;
+            case EMPLOYEE_NOT_FOUND -> AuditReasonCode.EMPLOYEE_NOT_FOUND;
+            case NO_SITE_ASSIGNMENT -> AuditReasonCode.NO_SITE_ASSIGNMENT;
+            case OUTSIDE_GEOFENCE -> AuditReasonCode.GEOFENCE_REJECTED;
+            case AMBIGUOUS_SITE -> AuditReasonCode.AMBIGUOUS_SITE;
+            case APPROVAL_REQUIRED -> AuditReasonCode.APPROVAL_REQUIRED;
+        };
     }
 }

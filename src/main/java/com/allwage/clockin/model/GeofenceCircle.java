@@ -41,6 +41,38 @@ public record GeofenceCircle(
         return !date.isBefore(effectiveFrom) && (effectiveTo == null || !date.isAfter(effectiveTo));
     }
 
+    /**
+     * Determines whether a coordinate lies within this zone including the configured tolerance.
+     *
+     * @param coordinate device coordinate
+     * @param toleranceMeters additional permitted distance beyond the radius
+     * @return true when the coordinate is contained by the effective radius
+     */
+    public boolean contains(GeoCoordinate coordinate, int toleranceMeters) {
+        if (toleranceMeters < 0) {
+            throw new IllegalArgumentException("Geofence tolerance cannot be negative");
+        }
+        return distanceToMeters(coordinate) <= radiusMeters + toleranceMeters;
+    }
+
+    /**
+     * Calculates the great-circle distance from this zone's centre to a coordinate.
+     *
+     * @param coordinate coordinate to measure
+     * @return distance in metres
+     */
+    public double distanceToMeters(GeoCoordinate coordinate) {
+        Objects.requireNonNull(coordinate, "Coordinate is required");
+        double latitudeDifference = Math.toRadians(coordinate.latitude() - centre.latitude());
+        double longitudeDifference = Math.toRadians(coordinate.longitude() - centre.longitude());
+        double latitudeStart = Math.toRadians(centre.latitude());
+        double latitudeEnd = Math.toRadians(coordinate.latitude());
+        double haversine = Math.sin(latitudeDifference / 2) * Math.sin(latitudeDifference / 2)
+            + Math.cos(latitudeStart) * Math.cos(latitudeEnd)
+            * Math.sin(longitudeDifference / 2) * Math.sin(longitudeDifference / 2);
+        return 6_371_000 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+    }
+
     private static void requireIdentifier(String value, String label) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(label + " is required");
