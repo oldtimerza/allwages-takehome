@@ -91,6 +91,16 @@ class SiteServiceConcurrencyTest {
         }
 
         @Override
+        public boolean saveIfAbsent(Employee employee) {
+            try {
+                store.saveIfAbsent("employees", employee.id(), employee);
+                return true;
+            } catch (IllegalStateException exception) {
+                return false;
+            }
+        }
+
+        @Override
         public Optional<Employee> findById(String id) {
             Optional<Employee> employee = store.findById("employees", id, Employee.class);
             employeeLookupStarted.countDown();

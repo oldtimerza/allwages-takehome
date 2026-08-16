@@ -37,6 +37,14 @@ com.allwage.clockin
 - Name repository ports `*Repository` and document-store adapters `*DocumentStoreRepository`.
 - Keep feature tests in the matching production package under `src/test/java`; architecture checks live in `architecture/`.
 
+# E2E Journey Tests
+
+- Hurl is a command-line tool for running and asserting HTTP requests; installation and documentation are available at [hurl.dev](https://hurl.dev/).
+- Store Hurl journeys under `e2e/journeys/`; see `e2e/README.md` for layout and execution.
+- Every journey must establish its own data through public HTTP endpoints. Begin with the required site, employee, primary geofence, team, assignment, and validation-rule setup; never seed `DocumentStore` or depend on another journey's state.
+- When adding, changing, or removing a controller endpoint, delegate to the `e2e` agent. It must update an existing journey or add a focused new journey, then run the affected Hurl test before the HTTP change is complete.
+- Hurl tests require a separately running application and supplement Maven tests rather than replacing them.
+
 # Validation of Work
 
 - After code changes, run the complete test suite and ensure every test passes. See [Maven test skill](.opencode/skills/maven-test/SKILL.md).

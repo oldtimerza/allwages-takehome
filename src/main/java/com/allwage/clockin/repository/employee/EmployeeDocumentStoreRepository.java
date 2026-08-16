@@ -27,6 +27,16 @@ public class EmployeeDocumentStoreRepository implements EmployeeRepository {
     }
 
     @Override
+    public boolean saveIfAbsent(@NonNull Employee employee) {
+        try {
+            store.saveIfAbsent(COLLECTION, employee.id(), employee);
+            return true;
+        } catch (IllegalStateException exception) {
+            return false;
+        }
+    }
+
+    @Override
     public @NonNull Optional<Employee> findById(@NonNull String id) {
         return store.findById(COLLECTION, id, Employee.class);
     }

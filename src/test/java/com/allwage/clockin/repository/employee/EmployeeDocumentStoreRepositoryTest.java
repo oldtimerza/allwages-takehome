@@ -25,4 +25,20 @@ class EmployeeDocumentStoreRepositoryTest {
 
         assertThat(repository.findById("employee-1")).contains(employee);
     }
+
+    @Test
+    void savesEmployeeOnlyWhenItsIdentifierIsUnused() {
+        // Given
+        Employee original = new Employee("employee-1", "Nomsa Dlamini", "+27115550123");
+        Employee replacement = new Employee("employee-1", "Thabo Molefe", "+27115550124");
+
+        // When
+        boolean firstCreated = repository.saveIfAbsent(original);
+        boolean secondCreated = repository.saveIfAbsent(replacement);
+
+        // Then
+        assertThat(firstCreated).isTrue();
+        assertThat(secondCreated).isFalse();
+        assertThat(repository.findById("employee-1")).contains(original);
+    }
 }

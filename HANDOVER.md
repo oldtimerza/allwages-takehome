@@ -21,7 +21,7 @@ Include:
 - New assumption, Teams cannot be moved between sites. i.e the validations are related to a site at various granularity levels (i.e site, team ,employee)
 - Assuming we are not checking roles and any other access control in this initial setup (out of scope for now), but for productoin security will need to be tight.
 - Intentionally didn't introduce libraries like mapstruct or project lombok to keep this service dependency light.
-- 
+- Validate results thorugh e2e Hurl journey files that test a user journey. 
 
 
 

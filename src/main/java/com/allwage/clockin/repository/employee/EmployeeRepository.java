@@ -17,6 +17,14 @@ public interface EmployeeRepository {
     void save(Employee employee);
 
     /**
+     * Saves an employee only when its identifier is unused.
+     *
+     * @param employee employee to create
+     * @return true when the employee was saved, or false when its identifier already exists
+     */
+    boolean saveIfAbsent(Employee employee);
+
+    /**
      * Finds an employee by their stable identifier.
      *
      * @param id employee identifier
