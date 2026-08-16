@@ -5,6 +5,7 @@ import com.allwage.clockin.model.Site;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Persistence port for site aggregate documents.
@@ -25,6 +26,15 @@ public interface SiteRepository {
      * @return the site when present
      */
     Optional<Site> findById(String id);
+
+    /**
+     * Applies an aggregate mutation and saves the resulting site as one operation.
+     *
+     * @param id site identifier
+     * @param mutation aggregate mutation, or empty when its nested target does not exist
+     * @return updated site when the site and nested target exist
+     */
+    Optional<Site> update(String id, Function<Site, Optional<Site>> mutation);
 
     /**
      * Finds the sites where an employee had an active assignment on a date.

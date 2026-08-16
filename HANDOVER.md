@@ -19,3 +19,24 @@ Include:
 - Replace Team when an employee is moved teams on the same site.
 
 - New assumption, Teams cannot be moved between sites. i.e the validations are related to a site at various granularity levels (i.e site, team ,employee)
+- Assuming we are not checking roles and any other access control in this initial setup (out of scope for now), but for productoin security will need to be tight.
+- Intentionally didn't introduce libraries like mapstruct or project lombok to keep this service dependency light.
+- 
+
+
+
+
+
+
+
+## AI tools used, one meaningful AI-assisted decision or output reviewed, and how it was verified, changed or rejected
+
+The introduction of a re-useable Audit Annotation using AOP . it was verified through code review and tweaked to make it more user developer friendly for easier re-use on methods.
+
+
+
+
+
+
+
+

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Document-store implementation of site aggregate persistence.
@@ -31,6 +32,19 @@ public class SiteDocumentStoreRepository implements SiteRepository {
     @Override
     public @NonNull Optional<Site> findById(@NonNull String id) {
         return store.findById(COLLECTION, id, Site.class);
+    }
+
+    @Override
+    public @NonNull Optional<Site> update(
+        @NonNull String id,
+        @NonNull Function<Site, Optional<Site>> mutation
+    ) {
+        return store.executeAtomically(() -> store.findById(COLLECTION, id, Site.class)
+            .flatMap(site -> mutation.apply(site))
+            .map(updatedSite -> {
+                store.save(COLLECTION, id, updatedSite);
+                return updatedSite;
+            }));
     }
 
     @Override

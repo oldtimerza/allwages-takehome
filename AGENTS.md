@@ -43,6 +43,7 @@ com.allwage.clockin
 - Follow red-green-refactor for every behavior change: first add or change a focused test that expresses the requirement, run it to confirm the pre-change behavior fails, implement the minimum production change, then run the test to confirm it passes before refactoring.
 - After a test passes, prove that its assertion can detect the behavior by temporarily changing its assertion so that the current implementation must fail, and run it to confirm the failure.
 - Restore the assertion to the intended requirement, fix any production defect exposed by the check, and rerun the focused test. Never weaken, remove, or leave an intentionally failing assertion in a completed test.
+- Unit tests must isolate external dependencies with Mockito and use explicit Given/When/Then sections.
 
 # Logging
 

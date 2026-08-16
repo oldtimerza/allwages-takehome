@@ -69,6 +69,72 @@ public record Site(
     }
 
     /**
+     * Replaces this site's default validation-rule overrides.
+     *
+     * @param rules replacement rule overrides
+     * @return updated site document
+     */
+    public Site withValidationRules(ValidationRules rules) {
+        return new Site(id, name, Objects.requireNonNull(rules, "Site validation rules are required"), teams, geofences, assignments);
+    }
+
+    /**
+     * Replaces validation-rule overrides for one site-owned team.
+     *
+     * @param teamId site-local team identifier
+     * @param rules replacement rule overrides
+     * @return updated site document when the team exists
+     */
+    public Optional<Site> withTeamValidationRules(String teamId, ValidationRules rules) {
+        Objects.requireNonNull(rules, "Team validation rules are required");
+        List<Team> updatedTeams = new ArrayList<>();
+        boolean found = false;
+        for (Team team : teams) {
+            if (team.id().equals(teamId)) {
+                updatedTeams.add(team.withValidationRules(rules));
+                found = true;
+            } else {
+                updatedTeams.add(team);
+            }
+        }
+        if (!found) {
+            return Optional.empty();
+        }
+        return Optional.of(new Site(id, name, validationRules, updatedTeams, geofences, assignments));
+    }
+
+    /**
+     * Replaces validation-rule overrides for one dated employee assignment.
+     *
+     * @param employeeId employee identifier
+     * @param effectiveFrom first date of the assignment
+     * @param rules replacement rule overrides
+     * @return updated site document when the assignment exists
+     */
+    public Optional<Site> withAssignmentValidationRules(
+        String employeeId,
+        LocalDate effectiveFrom,
+        ValidationRules rules
+    ) {
+        Objects.requireNonNull(effectiveFrom, "Assignment effective start date is required");
+        Objects.requireNonNull(rules, "Employee validation rules are required");
+        List<SiteAssignment> updatedAssignments = new ArrayList<>();
+        boolean found = false;
+        for (SiteAssignment assignment : assignments) {
+            if (assignment.employeeId().equals(employeeId) && assignment.effectiveFrom().equals(effectiveFrom)) {
+                updatedAssignments.add(assignment.withValidationRules(rules));
+                found = true;
+            } else {
+                updatedAssignments.add(assignment);
+            }
+        }
+        if (!found) {
+            return Optional.empty();
+        }
+        return Optional.of(new Site(id, name, validationRules, teams, geofences, updatedAssignments));
+    }
+
+    /**
      * Assigns an employee to one team at this site, closing their current assignment when replaced.
      *
      * @param employeeId employee identifier

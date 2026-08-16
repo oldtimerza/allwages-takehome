@@ -51,6 +51,22 @@ public record SiteAssignment(
         return new SiteAssignment(employeeId, teamId, effectiveFrom, endDate, validationRules);
     }
 
+    /**
+     * Replaces this assignment's employee-specific validation-rule overrides.
+     *
+     * @param rules replacement rule overrides
+     * @return updated assignment
+     */
+    public SiteAssignment withValidationRules(ValidationRules rules) {
+        return new SiteAssignment(
+            employeeId,
+            teamId,
+            effectiveFrom,
+            effectiveTo,
+            Objects.requireNonNull(rules, "Employee validation rules are required")
+        );
+    }
+
     private static void requireIdentifier(String value, String label) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(label + " is required");
