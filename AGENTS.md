@@ -23,6 +23,13 @@ com.allwage.clockin
 - Dependencies flow inward: `controller -> service -> repository/store -> model`; services may also depend on `client`. Controllers may use models for API contracts; services may access `repository.store.DocumentStore` directly or use repositories.
 - Models must not depend on controller, service, client, or repository packages. Client and store code must not depend on application layers; repositories may use only store and model packages.
 
+# HTTP DTO Mapping
+
+- Keep HTTP request and response DTOs in the relevant `controller.<resource>` package; they must not cross into services, repositories, clients, or models.
+- Controllers manually map request DTO fields to domain models before calling services, and manually map domain results to response DTOs before returning HTTP responses.
+- Services accept and return domain models only; do not introduce automated or reflection-based mappers.
+- Use `ClockController.clock` as the reference implementation: it manually creates a `ClockEvent` from a `ClockRequest` before invoking `ClockService`.
+
 # Naming Convention
 
 - Name feature HTTP packages after the resource, for example `controller.clock`.

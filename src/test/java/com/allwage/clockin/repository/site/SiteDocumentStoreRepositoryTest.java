@@ -39,4 +39,17 @@ class SiteDocumentStoreRepositoryTest {
         assertThat(repository.findAssignedTo("employee-1", LocalDate.of(2026, 1, 15)))
             .containsExactly(assignedSite);
     }
+
+    @Test
+    void savesSiteOnlyWhenItsIdentifierIsUnused() {
+        Site originalSite = new Site("site-1", "Farm Alpha", null, List.of(), List.of(), List.of());
+        Site replacementSite = new Site("site-1", "Farm Bravo", null, List.of(), List.of(), List.of());
+
+        boolean originalWasSaved = repository.saveIfAbsent(originalSite);
+        boolean replacementWasSaved = repository.saveIfAbsent(replacementSite);
+
+        assertThat(originalWasSaved).isTrue();
+        assertThat(replacementWasSaved).isFalse();
+        assertThat(repository.findById("site-1")).contains(originalSite);
+    }
 }

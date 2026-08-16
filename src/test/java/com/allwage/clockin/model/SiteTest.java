@@ -99,6 +99,24 @@ class SiteTest {
     }
 
     @Test
+    void addsGeofenceToSite() {
+        GeofenceCircle geofence = geofence("zone-1", false, FIRST_JANUARY, null);
+
+        Site site = site().addGeofence(geofence);
+
+        assertThat(site.geofences()).containsExactly(geofence);
+    }
+
+    @Test
+    void rejectsDuplicateGeofenceAtSite() {
+        Site site = site().addGeofence(geofence("zone-1", false, FIRST_JANUARY, null));
+
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> site.addGeofence(geofence("zone-1", false, FIRST_JANUARY, null)))
+            .withMessage("Geofence zone-1 already belongs to site site-1");
+    }
+
+    @Test
     void rejectsOverlappingPrimaryGeofences() {
         GeofenceCircle firstPrimary = geofence("zone-1", true, FIRST_JANUARY, null);
         GeofenceCircle secondPrimary = geofence("zone-2", true, LocalDate.of(2026, 2, 1), null);

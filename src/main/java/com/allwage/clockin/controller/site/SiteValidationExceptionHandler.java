@@ -12,7 +12,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
 /**
- * Returns client errors for malformed or invalid site validation-rule updates.
+ * Returns client errors for malformed site updates and invalid aggregate mutations.
  */
 @RestControllerAdvice(assignableTypes = SiteController.class)
 public class SiteValidationExceptionHandler {
@@ -20,7 +20,7 @@ public class SiteValidationExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(SiteValidationExceptionHandler.class);
 
     /**
-     * Logs and returns a client error for requests rejected before reaching the site service.
+     * Logs and returns a client error for invalid site requests rejected before reaching the service.
      *
      * @param request HTTP request that was rejected
      * @param exception request failure
@@ -31,14 +31,33 @@ public class SiteValidationExceptionHandler {
         MethodArgumentTypeMismatchException.class,
         HttpMessageNotReadableException.class
     })
-    public @NonNull ResponseEntity<Void> handleInvalidValidationRulesRequest(
+    public @NonNull ResponseEntity<Void> handleInvalidSiteRequest(
         HttpServletRequest request,
         Exception exception
     ) {
         log.warn(
-            "Rejected validation-rule update request: method={} uri={} reason={}",
+            "Rejected site request: method={} uri={} reason={}",
             request.getMethod(), request.getRequestURI(), exception.getClass().getSimpleName()
         );
         return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * Logs and returns a conflict when a site aggregate invariant rejects a mutation.
+     *
+     * @param request HTTP request that was rejected
+     * @param exception aggregate invariant failure
+     * @return conflict response
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public @NonNull ResponseEntity<Void> handleSiteMutationConflict(
+        HttpServletRequest request,
+        IllegalArgumentException exception
+    ) {
+        log.warn(
+            "Rejected site mutation: method={} uri={} reason={}",
+            request.getMethod(), request.getRequestURI(), exception.getMessage()
+        );
+        return ResponseEntity.status(409).build();
     }
 }

@@ -2,8 +2,11 @@ package com.allwage.clockin.service;
 
 import com.allwage.clockin.model.Site;
 import com.allwage.clockin.model.SiteAssignment;
+import com.allwage.clockin.model.GeoCoordinate;
+import com.allwage.clockin.model.GeofenceCircle;
 import com.allwage.clockin.model.Team;
 import com.allwage.clockin.model.ValidationRules;
+import com.allwage.clockin.repository.employee.EmployeeRepository;
 import com.allwage.clockin.repository.site.SiteRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,12 +39,15 @@ class SiteServiceTest {
     @Mock
     private SiteRepository siteRepository;
 
+    @Mock
+    private EmployeeRepository employeeRepository;
+
     @Test
     void givenExistingSite_whenReplacingSiteRules_thenReturnsReplacementAndAppliesMutation() {
         // Given
         Site sourceSite = site();
         AtomicReference<Site> updatedSite = new AtomicReference<>();
-        SiteService siteService = new SiteService(siteRepository);
+        SiteService siteService = new SiteService(siteRepository, employeeRepository);
         given(siteRepository.update(eq(SITE_ID), ArgumentMatchers.any()))
             .willAnswer(invocation -> applyMutation(invocation, sourceSite, updatedSite));
 
@@ -60,7 +66,7 @@ class SiteServiceTest {
         // Given
         Site sourceSite = site();
         AtomicReference<Site> updatedSite = new AtomicReference<>();
-        SiteService siteService = new SiteService(siteRepository);
+        SiteService siteService = new SiteService(siteRepository, employeeRepository);
         given(siteRepository.update(eq(SITE_ID), ArgumentMatchers.any()))
             .willAnswer(invocation -> applyMutation(invocation, sourceSite, updatedSite));
 
@@ -80,7 +86,7 @@ class SiteServiceTest {
         // Given
         Site sourceSite = siteWithHistoricalAssignments();
         AtomicReference<Site> updatedSite = new AtomicReference<>();
-        SiteService siteService = new SiteService(siteRepository);
+        SiteService siteService = new SiteService(siteRepository, employeeRepository);
         given(siteRepository.update(eq(SITE_ID), ArgumentMatchers.any()))
             .willAnswer(invocation -> applyMutation(invocation, sourceSite, updatedSite));
 
@@ -119,7 +125,7 @@ class SiteServiceTest {
         // Given
         Site sourceSite = site();
         AtomicReference<Site> updatedSite = new AtomicReference<>();
-        SiteService siteService = new SiteService(siteRepository);
+        SiteService siteService = new SiteService(siteRepository, employeeRepository);
         given(siteRepository.update(eq(SITE_ID), ArgumentMatchers.any()))
             .willAnswer(invocation -> applyMutation(invocation, sourceSite, updatedSite));
 
@@ -133,6 +139,44 @@ class SiteServiceTest {
         // Then
         assertThat(result).isEmpty();
         assertThat(updatedSite.get()).isNull();
+        then(siteRepository).should().update(eq(SITE_ID), ArgumentMatchers.any());
+        then(siteRepository).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    void givenUnusedSiteId_whenCreatingSite_thenReturnsAndSavesTheSite() {
+        // Given
+        Site site = site();
+        SiteService siteService = new SiteService(siteRepository, employeeRepository);
+        given(siteRepository.saveIfAbsent(site)).willReturn(true);
+
+        // When
+        Optional<Site> result = siteService.createSite(site);
+
+        // Then
+        assertThat(result).contains(site);
+        then(siteRepository).should().saveIfAbsent(site);
+        then(siteRepository).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    void givenExistingSite_whenAddingGeofence_thenReturnsGeofenceAndAppliesMutation() {
+        // Given
+        Site sourceSite = site();
+        GeofenceCircle geofence = new GeofenceCircle(
+            "zone-1", new GeoCoordinate(-26.2041, 28.0473), 100, false, FIRST_ASSIGNMENT_START, null
+        );
+        AtomicReference<Site> updatedSite = new AtomicReference<>();
+        SiteService siteService = new SiteService(siteRepository, employeeRepository);
+        given(siteRepository.update(eq(SITE_ID), ArgumentMatchers.any()))
+            .willAnswer(invocation -> applyMutation(invocation, sourceSite, updatedSite));
+
+        // When
+        Optional<GeofenceCircle> result = siteService.addGeofence(SITE_ID, geofence);
+
+        // Then
+        assertThat(result).contains(geofence);
+        assertThat(updatedSite.get().geofences()).containsExactly(geofence);
         then(siteRepository).should().update(eq(SITE_ID), ArgumentMatchers.any());
         then(siteRepository).shouldHaveNoMoreInteractions();
     }

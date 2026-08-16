@@ -20,6 +20,14 @@ public interface SiteRepository {
     void save(Site site);
 
     /**
+     * Saves a complete site aggregate document only when its identifier is unused.
+     *
+     * @param site site to create
+     * @return true when the site was saved, or false when its identifier already exists
+     */
+    boolean saveIfAbsent(Site site);
+
+    /**
      * Finds a site by identifier.
      *
      * @param id site identifier

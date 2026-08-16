@@ -1,15 +1,24 @@
 package com.allwage.clockin.controller.site;
 
+import com.allwage.clockin.model.GeoCoordinate;
+import com.allwage.clockin.model.GeofenceCircle;
+import com.allwage.clockin.model.Site;
+import com.allwage.clockin.model.SiteAssignment;
+import com.allwage.clockin.model.Team;
 import com.allwage.clockin.model.ValidationRules;
 import com.allwage.clockin.service.SiteService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * REST controller for managing site-owned validation-rule configurations.
@@ -22,6 +31,98 @@ public class SiteController {
 
     public SiteController(@NonNull SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    /**
+     * Creates an empty site aggregate.
+     *
+     * @param request site details
+     * @return created site, or conflict when the identifier is already in use
+     */
+    @PostMapping
+    public @NonNull ResponseEntity<SiteResponse> createSite(@Valid @RequestBody CreateSiteRequest request) {
+        Site site = new Site(
+            request.id(),
+            request.name(),
+            request.validationRules() == null ? null : new ValidationRules(
+                request.validationRules().toleranceMeters(),
+                request.validationRules().approvalRequired(),
+                request.validationRules().strictModeHours()
+            ),
+            List.of(),
+            List.of(),
+            List.of()
+        );
+        return siteService.createSite(site)
+            .map(createdSite -> ResponseEntity.status(HttpStatus.CREATED).body(siteResponse(createdSite)))
+            .orElseGet(() -> ResponseEntity.status(HttpStatus.CONFLICT).build());
+    }
+
+    /**
+     * Adds a geofence owned by a site.
+     *
+     * @param siteId site identifier
+     * @param request geofence details
+     * @return created geofence, or not found when the site does not exist
+     */
+    @PostMapping("/{siteId}/geofences")
+    public @NonNull ResponseEntity<GeofenceResponse> addGeofence(
+        @PathVariable String siteId,
+        @Valid @RequestBody CreateGeofenceRequest request
+    ) {
+        GeofenceCircle geofence = new GeofenceCircle(
+            request.id(),
+            new GeoCoordinate(request.latitude(), request.longitude()),
+            request.radiusMeters(),
+            request.primary(),
+            request.effectiveFrom(),
+            request.effectiveTo()
+        );
+        return siteService.addGeofence(siteId, geofence)
+            .map(createdGeofence -> ResponseEntity.status(HttpStatus.CREATED).body(geofenceResponse(createdGeofence)))
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Adds a team owned by a site.
+     *
+     * @param siteId site identifier
+     * @param request team to add
+     * @return created team, or not found when the site does not exist
+     */
+    @PostMapping("/{siteId}/teams")
+    public @NonNull ResponseEntity<Team> addTeam(
+        @PathVariable String siteId,
+        @Valid @RequestBody CreateTeamRequest request
+    ) {
+        return siteService.addTeam(siteId, request.toModel())
+            .map(team -> ResponseEntity.status(HttpStatus.CREATED).body(team))
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Assigns an employee to a team owned by a site.
+     *
+     * @param siteId site identifier
+     * @param teamId site-local team identifier
+     * @param request employee assignment details
+     * @return created assignment, or not found when an owner or reference does not exist
+     */
+    @PostMapping("/{siteId}/teams/{teamId}/assignments")
+    public @NonNull ResponseEntity<SiteAssignment> assignEmployee(
+        @PathVariable String siteId,
+        @PathVariable String teamId,
+        @Valid @RequestBody CreateAssignmentRequest request
+    ) {
+        return siteService.assignEmployee(
+            siteId,
+            teamId,
+            request.employeeId(),
+            request.effectiveFrom(),
+            request.validationRulesModel()
+        )
+            .map(assignment -> ResponseEntity.status(HttpStatus.CREATED).body(assignment))
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
@@ -80,5 +181,21 @@ public class SiteController {
 
     private static ResponseEntity<ValidationRules> response(java.util.Optional<ValidationRules> rules) {
         return rules.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private static SiteResponse siteResponse(Site site) {
+        return new SiteResponse(site.id(), site.name());
+    }
+
+    private static GeofenceResponse geofenceResponse(GeofenceCircle geofence) {
+        return new GeofenceResponse(
+            geofence.id(),
+            geofence.centre().latitude(),
+            geofence.centre().longitude(),
+            geofence.radiusMeters(),
+            geofence.primary(),
+            geofence.effectiveFrom(),
+            geofence.effectiveTo()
+        );
     }
 }

@@ -11,6 +11,7 @@ Check the following:
 
 - Correctness, behavioral regressions, error handling, and missing focused tests.
 - Simple responsibilities and dependency direction: controllers handle HTTP, services coordinate use cases, clients isolate external messaging, repositories isolate persistence access, and models remain independent.
+- HTTP boundary mapping: request and response DTOs stay in `controller.<resource>`; controllers manually map request fields to domain models and domain results to response DTOs. Services, repositories, clients, and models must not depend on controller DTOs. Use `ClockController`'s manual `ClockRequest` to `ClockEvent` construction as the project reference; do not introduce automated or reflection-based mappers.
 - SOLID concerns that are concrete in the changed code: mixed responsibilities, abstractions coupled to implementations, unsuitable dependencies, or interfaces that force irrelevant methods.
 - Established names and package placement: `controller.<resource>`, `repository.<aggregate>`, `*Repository`, `*DocumentStoreRepository`, and matching test packages.
 - Existing ArchUnit restrictions and Checkstyle violations.

@@ -30,6 +30,16 @@ public class SiteDocumentStoreRepository implements SiteRepository {
     }
 
     @Override
+    public boolean saveIfAbsent(@NonNull Site site) {
+        try {
+            store.saveIfAbsent(COLLECTION, site.id(), site);
+            return true;
+        } catch (IllegalStateException exception) {
+            return false;
+        }
+    }
+
+    @Override
     public @NonNull Optional<Site> findById(@NonNull String id) {
         return store.findById(COLLECTION, id, Site.class);
     }
