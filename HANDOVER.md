@@ -51,4 +51,10 @@ I used OpenCode multiple agents ruinning on worktrees inside a Herdr terminal, i
 
 One meaningful AI-assisted decision was the reusable `@Audited` AOP design. I reviewed and changed the successful clock-processing path so that the clock and its success audit are persisted within `DocumentStore.executeAtomically`, rather than relying on a separate post-success audit write. I reviewed focused clock, audit, controller, repository, and Hurl test coverage. Before submission, I would run and record successful Maven and Hurl results.
 
+## Additional tools used
 
+I used Hurl (https://hurl.dev/) as my preferred tools for testing and validating the APIs. The reason for this is simply:
+- It allows me to store and keep the test journey's close to the code.
+- Being a text based tool with simple syntax, it is ideal for agents to write.
+- it's terminal based and easy to execute via scripts and run by agents or in ci/cd.
+- it has enough features to be useful without being verbose.
