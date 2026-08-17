@@ -126,6 +126,20 @@ class ClockServiceTest {
     }
 
     @Test
+    void givenFutureClockTimestamp_whenProcessing_thenPersistsFutureTimestampResultWithoutLookingUpSites() {
+        // Given
+        ClockService clockService = clockService();
+
+        // When
+        ValidatedClockEvent result = clockService.processClock(clockEventAtTime("2100-01-01T07:00:00+02:00"));
+
+        // Then
+        assertThat(result.validationResult().reason()).isEqualTo(ClockValidationResult.Reason.FUTURE_TIMESTAMP);
+        then(siteRepository).shouldHaveNoInteractions();
+        then(instantMessagingClient).shouldHaveNoInteractions();
+    }
+
+    @Test
     void givenEmployeeWithoutAnActiveSiteAssignment_whenProcessing_thenPersistsNoAssignmentResult() {
         // Given
         ClockService clockService = clockService();
@@ -232,10 +246,18 @@ class ClockServiceTest {
     }
 
     private ClockEvent clockEventAt(double latitude, double longitude) {
+        return clockEventAt(latitude, longitude, "2026-01-05T07:00:00+02:00");
+    }
+
+    private ClockEvent clockEventAtTime(String timestamp) {
+        return clockEventAt(-26.2041, 28.0473, timestamp);
+    }
+
+    private ClockEvent clockEventAt(double latitude, double longitude, String timestamp) {
         return new ClockEvent(
             "clock-1",
             EMPLOYEE_ID,
-            ZonedDateTime.parse("2026-01-05T07:00:00+02:00"),
+            ZonedDateTime.parse(timestamp),
             latitude,
             longitude,
             10,

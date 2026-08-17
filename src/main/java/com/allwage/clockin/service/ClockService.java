@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -94,6 +95,9 @@ public class ClockService {
     }
 
     private ClockValidationResult validate(ClockEvent clockEvent, boolean employeeExists) {
+        if (isFutureClock(clockEvent)) {
+            return rejected(ClockValidationResult.Reason.FUTURE_TIMESTAMP, null, null);
+        }
         if (!employeeExists) {
             return rejected(ClockValidationResult.Reason.EMPLOYEE_NOT_FOUND, null, null);
         }
@@ -110,6 +114,10 @@ public class ClockService {
             return rejected(ClockValidationResult.Reason.AMBIGUOUS_SITE, null, null);
         }
         return validationFor(selectPreferredGeofence(matchingGeofences));
+    }
+
+    private boolean isFutureClock(ClockEvent clockEvent) {
+        return clockEvent.timestamp().toInstant().isAfter(Instant.now());
     }
 
     private LocalDate clockDate(ClockEvent clockEvent) {

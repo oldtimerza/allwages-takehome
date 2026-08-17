@@ -1,12 +1,15 @@
 package com.allwage.clockin.repository.audit;
 
 import com.allwage.clockin.model.AuditEvent;
+import com.allwage.clockin.model.AuditEventPage;
+import com.allwage.clockin.model.AuditEventPageQuery;
 import com.allwage.clockin.model.AuditEventType;
 import com.allwage.clockin.repository.store.DocumentStore;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Comparator;
 
 /**
  * Document-store implementation of audit event persistence.
@@ -32,5 +35,22 @@ public class AuditEventDocumentStoreRepository implements AuditEventRepository {
         return store.findAll(COLLECTION, AuditEvent.class).stream()
             .filter(auditEvent -> auditEvent.type() == type)
             .toList();
+    }
+
+    @Override
+    public @NonNull AuditEventPage findPage(@NonNull AuditEventPageQuery query) {
+        List<AuditEvent> matchingEvents = store.findAll(COLLECTION, AuditEvent.class).stream()
+            .filter(auditEvent -> query.type() == null || auditEvent.type() == query.type())
+            .sorted(Comparator.comparing(AuditEvent::occurredAt).reversed()
+                .thenComparing(AuditEvent::id, Comparator.reverseOrder()))
+            .toList();
+        int totalElements = matchingEvents.size();
+        int totalPages = (totalElements + query.size() - 1) / query.size();
+        long firstEntry = (long) query.page() * query.size();
+        List<AuditEvent> entries = firstEntry >= totalElements
+            ? List.of()
+            : matchingEvents.subList((int) firstEntry, (int) Math.min(firstEntry + query.size(), totalElements));
+
+        return new AuditEventPage(entries, query.page(), query.size(), totalElements, totalPages);
     }
 }

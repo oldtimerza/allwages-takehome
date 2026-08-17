@@ -144,6 +144,38 @@ class ClockControllerTest {
     }
 
     @Test
+    void futureClock_savesRejectedResultAndRejectionAudit() {
+        configureEmployeeAndSite();
+        String requestBody = """
+            {
+                "employeeId": "emp-123",
+                "timestamp": "2100-01-01T09:00:00+02:00",
+                "latitude": -26.2041,
+                "longitude": 28.0473,
+                "accuracyMeters": 10.0,
+                "type": "IN"
+            }
+            """;
+
+        ResponseEntity<ClockResponse> response = restTemplate.postForEntity(
+            "/api/clocks",
+            new org.springframework.http.HttpEntity<>(requestBody, createJsonHeaders()),
+            ClockResponse.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().validationResult().reason())
+            .isEqualTo(ClockValidationResult.Reason.FUTURE_TIMESTAMP);
+        assertThat(store.findAll("clocks", ValidatedClockEvent.class)).hasSize(1);
+        List<AuditEvent> audits = store.findAll("clock-audits", AuditEvent.class);
+        assertThat(audits).hasSize(1);
+        assertThat(audits.getFirst().type()).isEqualTo(AuditEventType.CLOCK_REJECTED);
+        ClockAuditPayload payload = (ClockAuditPayload) audits.getFirst().payload();
+        assertThat(payload.reasonCode()).isEqualTo(AuditReasonCode.FUTURE_TIMESTAMP);
+    }
+
+    @Test
     void invalidClockRequest_recordsRejectionAudit() {
         String requestBody = """
             {

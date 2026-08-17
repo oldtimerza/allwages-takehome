@@ -39,6 +39,7 @@ public record ClockValidationResult(
      */
     public enum Reason {
         ACCEPTED,
+        FUTURE_TIMESTAMP,
         EMPLOYEE_NOT_FOUND,
         NO_SITE_ASSIGNMENT,
         OUTSIDE_GEOFENCE,

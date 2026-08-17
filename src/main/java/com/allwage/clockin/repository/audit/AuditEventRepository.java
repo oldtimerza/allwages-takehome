@@ -1,6 +1,8 @@
 package com.allwage.clockin.repository.audit;
 
 import com.allwage.clockin.model.AuditEvent;
+import com.allwage.clockin.model.AuditEventPage;
+import com.allwage.clockin.model.AuditEventPageQuery;
 import com.allwage.clockin.model.AuditEventType;
 
 import java.util.List;
@@ -24,4 +26,12 @@ public interface AuditEventRepository {
      * @return matching audit events
      */
     List<AuditEvent> findByType(AuditEventType type);
+
+    /**
+     * Finds a deterministic page of audit events.
+     *
+     * @param query requested page and optional type filter
+     * @return matching audit events and page metadata
+     */
+    AuditEventPage findPage(AuditEventPageQuery query);
 }

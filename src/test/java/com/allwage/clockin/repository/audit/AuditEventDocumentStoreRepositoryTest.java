@@ -1,6 +1,8 @@
 package com.allwage.clockin.repository.audit;
 
 import com.allwage.clockin.model.AuditEvent;
+import com.allwage.clockin.model.AuditEventPage;
+import com.allwage.clockin.model.AuditEventPageQuery;
 import com.allwage.clockin.model.AuditEventType;
 import com.allwage.clockin.model.AuditReasonCode;
 import com.allwage.clockin.model.AuditSource;
@@ -60,6 +62,42 @@ class AuditEventDocumentStoreRepositoryTest {
         }
     }
 
+    @Test
+    void findPage_returnsNewestMatchingEventsWithAccurateMetadata() {
+        AuditEventDocumentStoreRepository repository = new AuditEventDocumentStoreRepository(new DocumentStore());
+        AuditEvent oldestAccepted = auditEvent("audit-1", "2026-08-16T10:00:00Z", AuditEventType.CLOCK_ACCEPTED);
+        AuditEvent rejected = auditEvent("audit-2", "2026-08-16T11:00:00Z", AuditEventType.CLOCK_REJECTED);
+        AuditEvent newestAccepted = auditEvent("audit-3", "2026-08-16T12:00:00Z", AuditEventType.CLOCK_ACCEPTED);
+        repository.save(oldestAccepted);
+        repository.save(rejected);
+        repository.save(newestAccepted);
+
+        AuditEventPage page = repository.findPage(new AuditEventPageQuery(0, 1, AuditEventType.CLOCK_ACCEPTED));
+
+        assertThat(page.entries()).containsExactly(newestAccepted);
+        assertThat(page.page()).isZero();
+        assertThat(page.size()).isOne();
+        assertThat(page.totalElements()).isEqualTo(2);
+        assertThat(page.totalPages()).isEqualTo(2);
+    }
+
+    @Test
+    void findPage_usesIdAsTieBreakerAndReturnsEmptyPageBeyondResults() {
+        AuditEventDocumentStoreRepository repository = new AuditEventDocumentStoreRepository(new DocumentStore());
+        AuditEvent lowerId = auditEvent("audit-a", "2026-08-16T10:00:00Z", AuditEventType.CLOCK_ACCEPTED);
+        AuditEvent higherId = auditEvent("audit-z", "2026-08-16T10:00:00Z", AuditEventType.CLOCK_ACCEPTED);
+        repository.save(lowerId);
+        repository.save(higherId);
+
+        AuditEventPage firstPage = repository.findPage(new AuditEventPageQuery(0, 2, null));
+        AuditEventPage beyondResults = repository.findPage(new AuditEventPageQuery(1, 2, null));
+
+        assertThat(firstPage.entries()).containsExactly(higherId, lowerId);
+        assertThat(beyondResults.entries()).isEmpty();
+        assertThat(beyondResults.totalElements()).isEqualTo(2);
+        assertThat(beyondResults.totalPages()).isEqualTo(1);
+    }
+
     private Void appendWhenStarted(
         AuditEventDocumentStoreRepository repository,
         AuditEvent auditEvent,
@@ -89,13 +127,27 @@ class AuditEventDocumentStoreRepositoryTest {
     }
 
     private AuditEvent auditEvent(String id, String clockEventId, String employeeId) {
+        return auditEvent(id, "2026-08-16T10:00:00Z", clockEventId, employeeId, AuditEventType.CLOCK_ACCEPTED);
+    }
+
+    private AuditEvent auditEvent(String id, String occurredAt, AuditEventType type) {
+        return auditEvent(id, occurredAt, "clock-123", "emp-123", type);
+    }
+
+    private AuditEvent auditEvent(
+        String id,
+        String occurredAt,
+        String clockEventId,
+        String employeeId,
+        AuditEventType type
+    ) {
         return new AuditEvent(
             id,
-            Instant.parse("2026-08-16T10:00:00Z"),
+            Instant.parse(occurredAt),
             "correlation-123",
             clockEventId,
             employeeId,
-            AuditEventType.CLOCK_ACCEPTED,
+            type,
             1,
             new ClockAuditPayload(AuditReasonCode.CLOCK_ACCEPTED, AuditSource.MOBILE_API, 200)
         );

@@ -67,6 +67,7 @@ public class ClockProcessingAuditMapper implements AuditMapper {
     private AuditReasonCode reasonCodeFor(ClockValidationResult.Reason reason) {
         return switch (reason) {
             case ACCEPTED -> AuditReasonCode.CLOCK_ACCEPTED;
+            case FUTURE_TIMESTAMP -> AuditReasonCode.FUTURE_TIMESTAMP;
             case EMPLOYEE_NOT_FOUND -> AuditReasonCode.EMPLOYEE_NOT_FOUND;
             case NO_SITE_ASSIGNMENT -> AuditReasonCode.NO_SITE_ASSIGNMENT;
             case OUTSIDE_GEOFENCE -> AuditReasonCode.GEOFENCE_REJECTED;

@@ -5,6 +5,7 @@ package com.allwage.clockin.model;
  */
 public enum AuditReasonCode {
     CLOCK_ACCEPTED,
+    FUTURE_TIMESTAMP,
     EMPLOYEE_NOT_FOUND,
     NO_SITE_ASSIGNMENT,
     GEOFENCE_REJECTED,
