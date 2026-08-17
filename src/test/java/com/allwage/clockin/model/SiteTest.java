@@ -1,5 +1,6 @@
 package com.allwage.clockin.model;
 
+import com.allwage.clockin.model.Site.*;
 import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;

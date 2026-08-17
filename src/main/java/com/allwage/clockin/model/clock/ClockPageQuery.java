@@ -1,4 +1,4 @@
-package com.allwage.clockin.model;
+package com.allwage.clockin.model.clock;
 
 /**
  * Domain query for one page of clock attempts.

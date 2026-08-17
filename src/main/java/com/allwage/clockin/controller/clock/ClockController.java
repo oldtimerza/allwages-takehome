@@ -1,7 +1,7 @@
 package com.allwage.clockin.controller.clock;
 
-import com.allwage.clockin.model.ClockEvent;
-import com.allwage.clockin.model.ValidatedClockEvent;
+import com.allwage.clockin.model.clock.ClockEvent;
+import com.allwage.clockin.model.Site.ValidatedClockEvent;
 import com.allwage.clockin.service.ClockService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

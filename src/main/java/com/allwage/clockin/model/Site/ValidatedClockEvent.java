@@ -1,4 +1,7 @@
-package com.allwage.clockin.model;
+package com.allwage.clockin.model.Site;
+
+import com.allwage.clockin.model.clock.ClockEvent;
+import com.allwage.clockin.model.clock.ClockValidationResult;
 
 import java.util.Objects;
 

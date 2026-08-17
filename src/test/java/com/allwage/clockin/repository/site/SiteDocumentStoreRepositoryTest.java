@@ -1,8 +1,8 @@
 package com.allwage.clockin.repository.site;
 
-import com.allwage.clockin.model.Site;
-import com.allwage.clockin.model.SiteAssignment;
-import com.allwage.clockin.model.Team;
+import com.allwage.clockin.model.Site.Site;
+import com.allwage.clockin.model.Site.SiteAssignment;
+import com.allwage.clockin.model.Site.Team;
 import com.allwage.clockin.repository.store.DocumentStore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

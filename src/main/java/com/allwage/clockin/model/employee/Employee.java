@@ -1,4 +1,4 @@
-package com.allwage.clockin.model;
+package com.allwage.clockin.model.employee;
 
 /**
  * Represents an employee who can clock in/out at job sites.

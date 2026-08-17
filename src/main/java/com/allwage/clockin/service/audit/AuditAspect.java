@@ -1,6 +1,6 @@
 package com.allwage.clockin.service.audit;
 
-import com.allwage.clockin.repository.store.DocumentStore;
+import com.allwage.clockin.repository.transaction.TransactionRepository;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -22,18 +22,18 @@ public class AuditAspect {
     private final ApplicationContext applicationContext;
     private final AuditContextProvider auditContextProvider;
     private final AuditWriter auditWriter;
-    private final DocumentStore store;
+    private final TransactionRepository transactionRepository;
 
     public AuditAspect(
         @NonNull ApplicationContext applicationContext,
         @NonNull AuditContextProvider auditContextProvider,
         @NonNull AuditWriter auditWriter,
-        @NonNull DocumentStore store
+        @NonNull TransactionRepository transactionRepository
     ) {
         this.applicationContext = applicationContext;
         this.auditContextProvider = auditContextProvider;
         this.auditWriter = auditWriter;
-        this.store = store;
+        this.transactionRepository = transactionRepository;
     }
 
     /**
@@ -52,7 +52,7 @@ public class AuditAspect {
             return recordFailureOnlyInvocation(joinPoint, mapper, context);
         }
         try {
-            return store.executeAtomically(() -> recordSuccessfulInvocation(joinPoint, mapper, context));
+            return transactionRepository.executeAtomically(() -> recordSuccessfulInvocation(joinPoint, mapper, context));
         } catch (AuditedMethodFailure failure) {
             recordFailure(mapper, context, joinPoint.getArgs(), failure.getCause());
             throw failure.getCause();

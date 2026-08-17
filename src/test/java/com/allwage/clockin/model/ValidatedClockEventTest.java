@@ -1,5 +1,8 @@
 package com.allwage.clockin.model;
 
+import com.allwage.clockin.model.Site.ValidatedClockEvent;
+import com.allwage.clockin.model.clock.ClockEvent;
+import com.allwage.clockin.model.clock.ClockValidationResult;
 import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;

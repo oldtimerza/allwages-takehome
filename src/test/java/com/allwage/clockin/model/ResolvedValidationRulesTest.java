@@ -1,5 +1,7 @@
 package com.allwage.clockin.model;
 
+import com.allwage.clockin.model.Site.ResolvedValidationRules;
+import com.allwage.clockin.model.Site.StrictModeHours;
 import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;

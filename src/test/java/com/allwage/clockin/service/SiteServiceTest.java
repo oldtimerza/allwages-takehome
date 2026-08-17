@@ -1,11 +1,11 @@
 package com.allwage.clockin.service;
 
-import com.allwage.clockin.model.Site;
-import com.allwage.clockin.model.SiteAssignment;
-import com.allwage.clockin.model.GeoCoordinate;
-import com.allwage.clockin.model.GeofenceCircle;
-import com.allwage.clockin.model.Team;
-import com.allwage.clockin.model.ValidationRules;
+import com.allwage.clockin.model.Site.Site;
+import com.allwage.clockin.model.Site.SiteAssignment;
+import com.allwage.clockin.model.Site.GeoCoordinate;
+import com.allwage.clockin.model.Site.GeofenceCircle;
+import com.allwage.clockin.model.Site.Team;
+import com.allwage.clockin.model.Site.ValidationRules;
 import com.allwage.clockin.repository.employee.EmployeeRepository;
 import com.allwage.clockin.repository.site.SiteRepository;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.allwage.clockin.model;
+package com.allwage.clockin.model.Site;
 
 /**
  * A geographic coordinate in decimal degrees.

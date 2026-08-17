@@ -1,6 +1,6 @@
 package com.allwage.clockin.service;
 
-import com.allwage.clockin.model.Employee;
+import com.allwage.clockin.model.employee.Employee;
 import com.allwage.clockin.repository.employee.EmployeeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

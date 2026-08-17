@@ -1,6 +1,6 @@
 package com.allwage.clockin.controller.employee;
 
-import com.allwage.clockin.model.Employee;
+import com.allwage.clockin.model.employee.Employee;
 import com.allwage.clockin.repository.store.DocumentStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

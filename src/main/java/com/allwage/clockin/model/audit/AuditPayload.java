@@ -1,4 +1,4 @@
-package com.allwage.clockin.model;
+package com.allwage.clockin.model.audit;
 
 /**
  * Type-specific data carried by an audit event.

@@ -1,6 +1,6 @@
 package com.allwage.clockin.repository.employee;
 
-import com.allwage.clockin.model.Employee;
+import com.allwage.clockin.model.employee.Employee;
 import com.allwage.clockin.repository.store.DocumentStore;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;

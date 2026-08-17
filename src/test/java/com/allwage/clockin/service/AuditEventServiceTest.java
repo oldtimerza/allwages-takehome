@@ -1,9 +1,10 @@
 package com.allwage.clockin.service;
 
-import com.allwage.clockin.model.AuditEventPage;
-import com.allwage.clockin.model.AuditEventPageQuery;
-import com.allwage.clockin.model.AuditEventType;
+import com.allwage.clockin.model.audit.AuditEventPage;
+import com.allwage.clockin.model.audit.AuditEventPageQuery;
+import com.allwage.clockin.model.audit.AuditEventType;
 import com.allwage.clockin.repository.audit.AuditEventRepository;
+import com.allwage.clockin.service.audit.AuditEventService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

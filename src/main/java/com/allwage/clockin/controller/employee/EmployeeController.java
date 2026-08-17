@@ -1,6 +1,6 @@
 package com.allwage.clockin.controller.employee;
 
-import com.allwage.clockin.model.Employee;
+import com.allwage.clockin.model.employee.Employee;
 import com.allwage.clockin.service.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

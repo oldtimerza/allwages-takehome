@@ -1,7 +1,7 @@
 package com.allwage.clockin.service.audit;
 
-import com.allwage.clockin.model.AuditEventType;
-import com.allwage.clockin.model.AuditPayload;
+import com.allwage.clockin.model.audit.AuditEventType;
+import com.allwage.clockin.model.audit.AuditPayload;
 
 import java.util.Objects;
 

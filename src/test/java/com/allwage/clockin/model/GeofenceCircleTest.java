@@ -1,5 +1,7 @@
 package com.allwage.clockin.model;
 
+import com.allwage.clockin.model.Site.GeoCoordinate;
+import com.allwage.clockin.model.Site.GeofenceCircle;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;

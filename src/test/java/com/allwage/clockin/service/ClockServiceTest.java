@@ -1,23 +1,30 @@
 package com.allwage.clockin.service;
 
 import com.allwage.clockin.client.InstantMessagingClient;
-import com.allwage.clockin.model.AuditEventType;
-import com.allwage.clockin.model.AuditReasonCode;
-import com.allwage.clockin.model.AuditSource;
-import com.allwage.clockin.model.ClockAuditPayload;
-import com.allwage.clockin.model.ClockEvent;
-import com.allwage.clockin.model.ClockValidationResult;
-import com.allwage.clockin.model.Employee;
-import com.allwage.clockin.model.GeoCoordinate;
-import com.allwage.clockin.model.GeofenceCircle;
-import com.allwage.clockin.model.Site;
-import com.allwage.clockin.model.SiteAssignment;
-import com.allwage.clockin.model.Team;
-import com.allwage.clockin.model.ValidationRules;
-import com.allwage.clockin.model.ValidatedClockEvent;
+import com.allwage.clockin.model.audit.AuditEvent;
+import com.allwage.clockin.model.audit.AuditEventType;
+import com.allwage.clockin.model.audit.AuditReasonCode;
+import com.allwage.clockin.model.audit.AuditSource;
+import com.allwage.clockin.model.audit.ClockAuditPayload;
+import com.allwage.clockin.model.clock.ClockEvent;
+import com.allwage.clockin.model.clock.ClockValidationResult;
+import com.allwage.clockin.model.employee.Employee;
+import com.allwage.clockin.model.Site.GeoCoordinate;
+import com.allwage.clockin.model.Site.GeofenceCircle;
+import com.allwage.clockin.model.Site.Site;
+import com.allwage.clockin.model.Site.SiteAssignment;
+import com.allwage.clockin.model.Site.Team;
+import com.allwage.clockin.model.Site.ValidationRules;
+import com.allwage.clockin.model.Site.ValidatedClockEvent;
+import com.allwage.clockin.repository.audit.AuditEventDocumentStoreRepository;
+import com.allwage.clockin.repository.audit.AuditEventRepository;
+import com.allwage.clockin.repository.clock.ClockEventDocumentStoreRepository;
+import com.allwage.clockin.repository.clock.ClockEventRepository;
 import com.allwage.clockin.repository.employee.EmployeeRepository;
 import com.allwage.clockin.repository.site.SiteRepository;
 import com.allwage.clockin.repository.store.DocumentStore;
+import com.allwage.clockin.repository.transaction.TransactionDocumentStoreRepository;
+import com.allwage.clockin.repository.transaction.TransactionRepository;
 import com.allwage.clockin.service.audit.AuditDraft;
 import com.allwage.clockin.service.audit.AuditWriter;
 import com.allwage.clockin.service.audit.ClockProcessingAuditMapper;
@@ -26,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -33,9 +41,11 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.willAnswer;
 
 @ExtendWith(MockitoExtension.class)
 class ClockServiceTest {
@@ -46,13 +56,16 @@ class ClockServiceTest {
     private static final LocalDate CLOCK_DATE = LocalDate.of(2026, 1, 5);
 
     @Mock
-    private DocumentStore store;
+    private ClockEventRepository clockEventRepository;
 
     @Mock
     private SiteRepository siteRepository;
 
     @Mock
     private EmployeeRepository employeeRepository;
+
+    @Mock
+    private TransactionRepository transactionRepository;
 
     @Mock
     private InstantMessagingClient instantMessagingClient;
@@ -83,7 +96,7 @@ class ClockServiceTest {
             SITE_ID,
             PRIMARY_GEOFENCE_ID
         ));
-        then(store).should().save("clocks", "clock-1", result);
+        then(clockEventRepository).should().save(result);
         then(instantMessagingClient).should().sendMessage(employee.phoneNumber(), "Your clock-in was accepted.");
     }
 
@@ -106,7 +119,7 @@ class ClockServiceTest {
             null,
             null
         ));
-        then(store).should().save("clocks", "clock-1", result);
+        then(clockEventRepository).should().save(result);
         then(instantMessagingClient).should().sendMessage(employee.phoneNumber(), "Your clock-in requires attention.");
     }
 
@@ -171,7 +184,7 @@ class ClockServiceTest {
 
         // Then
         assertThat(result.validationResult().reason()).isEqualTo(ClockValidationResult.Reason.AMBIGUOUS_SITE);
-        then(store).should().save("clocks", "clock-1", result);
+        then(clockEventRepository).should().save(result);
     }
 
     @Test
@@ -194,7 +207,7 @@ class ClockServiceTest {
             SITE_ID,
             PRIMARY_GEOFENCE_ID
         ));
-        then(store).should().save("clocks", "clock-1", result);
+        then(clockEventRepository).should().save(result);
     }
 
     @Test
@@ -211,18 +224,57 @@ class ClockServiceTest {
 
         // Then
         assertThat(result.validationResult().decision()).isEqualTo(ClockValidationResult.Decision.ACCEPTED);
-        then(store).should().save("clocks", "clock-1", result);
+        then(clockEventRepository).should().save(result);
         then(instantMessagingClient).should().sendMessage(employee.phoneNumber(), "Your clock-in was accepted.");
+    }
+
+    @Test
+    void givenAuditWriteFailure_whenProcessing_thenRollsBackClockAndAuditDocuments() {
+        // Given
+        DocumentStore documentStore = new DocumentStore();
+        ClockEventRepository clockEventRepository = new ClockEventDocumentStoreRepository(documentStore);
+        AuditEventRepository auditEventRepository = new AuditEventDocumentStoreRepository(documentStore);
+        ClockService clockService = new ClockService(
+            clockEventRepository,
+            siteRepository,
+            employeeRepository,
+            new TransactionDocumentStoreRepository(documentStore),
+            instantMessagingClient,
+            auditWriter,
+            auditMapper
+        );
+        given(employeeRepository.findById(EMPLOYEE_ID)).willReturn(Optional.empty());
+        given(auditMapper.auditFor(any(ValidatedClockEvent.class))).willAnswer(invocation ->
+            auditDraft(invocation.getArgument(0)));
+        willAnswer(invocation -> {
+            auditEventRepository.save(auditEvent());
+            throw new IllegalStateException("Audit write failed");
+        }).given(auditWriter).append(any());
+
+        // When / Then
+        assertThatThrownBy(() -> clockService.processClock(clockEvent()))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Audit write failed");
+        assertThat(clockEventRepository.findAll()).isEmpty();
+        assertThat(auditEventRepository.findByType(AuditEventType.CLOCK_ACCEPTED)).isEmpty();
     }
 
     private ClockService clockService() {
         givenAtomicStore();
         given(auditMapper.auditFor(any(ValidatedClockEvent.class))).willAnswer(invocation -> auditDraft(invocation.getArgument(0)));
-        return new ClockService(store, siteRepository, employeeRepository, instantMessagingClient, auditWriter, auditMapper);
+        return new ClockService(
+            clockEventRepository,
+            siteRepository,
+            employeeRepository,
+            transactionRepository,
+            instantMessagingClient,
+            auditWriter,
+            auditMapper
+        );
     }
 
     private void givenAtomicStore() {
-        given(store.executeAtomically(any())).willAnswer(invocation -> {
+        given(transactionRepository.executeAtomically(any())).willAnswer(invocation -> {
             Supplier<?> operation = invocation.getArgument(0);
             return operation.get();
         });
@@ -233,6 +285,19 @@ class ClockServiceTest {
             clockEvent.clockEvent().id(),
             clockEvent.clockEvent().employeeId(),
             AuditEventType.CLOCK_ACCEPTED,
+            new ClockAuditPayload(AuditReasonCode.CLOCK_ACCEPTED, AuditSource.MOBILE_API, 200)
+        );
+    }
+
+    private AuditEvent auditEvent() {
+        return new AuditEvent(
+            "audit-1",
+            Instant.parse("2026-08-16T10:00:00Z"),
+            "correlation-1",
+            "clock-1",
+            EMPLOYEE_ID,
+            AuditEventType.CLOCK_ACCEPTED,
+            1,
             new ClockAuditPayload(AuditReasonCode.CLOCK_ACCEPTED, AuditSource.MOBILE_API, 200)
         );
     }

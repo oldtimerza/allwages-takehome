@@ -1,6 +1,6 @@
 package com.allwage.clockin.controller.clock;
 
-import com.allwage.clockin.model.ClockValidationResult;
+import com.allwage.clockin.model.clock.ClockValidationResult;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 

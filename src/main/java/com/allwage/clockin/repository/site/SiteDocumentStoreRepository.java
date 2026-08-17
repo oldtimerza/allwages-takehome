@@ -1,6 +1,6 @@
 package com.allwage.clockin.repository.site;
 
-import com.allwage.clockin.model.Site;
+import com.allwage.clockin.model.Site.Site;
 import com.allwage.clockin.repository.store.DocumentStore;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;

@@ -1,6 +1,6 @@
 package com.allwage.clockin.repository.site;
 
-import com.allwage.clockin.model.Site;
+import com.allwage.clockin.model.Site.Site;
 
 import java.time.LocalDate;
 import java.util.List;

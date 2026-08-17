@@ -1,4 +1,4 @@
-package com.allwage.clockin.model;
+package com.allwage.clockin.model.audit;
 
 /**
  * Stable reasons for clock audit outcomes.

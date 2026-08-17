@@ -1,6 +1,6 @@
 package com.allwage.clockin.controller.clock;
 
-import com.allwage.clockin.model.ClockEvent.ClockType;
+import com.allwage.clockin.model.clock.ClockEvent.ClockType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.DecimalMax;

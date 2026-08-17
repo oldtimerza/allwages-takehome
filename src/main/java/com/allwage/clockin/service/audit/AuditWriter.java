@@ -1,6 +1,6 @@
 package com.allwage.clockin.service.audit;
 
-import com.allwage.clockin.model.AuditEvent;
+import com.allwage.clockin.model.audit.AuditEvent;
 import com.allwage.clockin.repository.audit.AuditEventRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

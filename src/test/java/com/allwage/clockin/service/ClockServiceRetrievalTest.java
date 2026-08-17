@@ -1,20 +1,21 @@
 package com.allwage.clockin.service;
 
 import com.allwage.clockin.client.InstantMessagingClient;
-import com.allwage.clockin.model.ClockEvent;
-import com.allwage.clockin.model.ClockPage;
-import com.allwage.clockin.model.ClockPageQuery;
-import com.allwage.clockin.model.ClockValidationResult;
-import com.allwage.clockin.model.Employee;
-import com.allwage.clockin.model.GeoCoordinate;
-import com.allwage.clockin.model.GeofenceCircle;
-import com.allwage.clockin.model.Site;
-import com.allwage.clockin.model.SiteAssignment;
-import com.allwage.clockin.model.Team;
-import com.allwage.clockin.model.ValidatedClockEvent;
+import com.allwage.clockin.model.clock.ClockEvent;
+import com.allwage.clockin.model.clock.ClockPage;
+import com.allwage.clockin.model.clock.ClockPageQuery;
+import com.allwage.clockin.model.clock.ClockValidationResult;
+import com.allwage.clockin.model.employee.Employee;
+import com.allwage.clockin.model.Site.GeoCoordinate;
+import com.allwage.clockin.model.Site.GeofenceCircle;
+import com.allwage.clockin.model.Site.Site;
+import com.allwage.clockin.model.Site.SiteAssignment;
+import com.allwage.clockin.model.Site.Team;
+import com.allwage.clockin.model.Site.ValidatedClockEvent;
+import com.allwage.clockin.repository.clock.ClockEventRepository;
 import com.allwage.clockin.repository.employee.EmployeeRepository;
 import com.allwage.clockin.repository.site.SiteRepository;
-import com.allwage.clockin.repository.store.DocumentStore;
+import com.allwage.clockin.repository.transaction.TransactionRepository;
 import com.allwage.clockin.service.audit.AuditWriter;
 import com.allwage.clockin.service.audit.ClockProcessingAuditMapper;
 import org.junit.jupiter.api.Test;
@@ -39,13 +40,16 @@ class ClockServiceRetrievalTest {
     private static final String TEAM_ID = "team-1";
 
     @Mock
-    private DocumentStore store;
+    private ClockEventRepository clockEventRepository;
 
     @Mock
     private SiteRepository siteRepository;
 
     @Mock
     private EmployeeRepository employeeRepository;
+
+    @Mock
+    private TransactionRepository transactionRepository;
 
     @Mock
     private InstantMessagingClient instantMessagingClient;
@@ -61,7 +65,7 @@ class ClockServiceRetrievalTest {
         // Given
         ClockService clockService = clockService();
         given(siteRepository.findById(SITE_ID)).willReturn(Optional.of(site()));
-        given(store.findAll("clocks", ValidatedClockEvent.class)).willReturn(List.of(
+        given(clockEventRepository.findAll()).willReturn(List.of(
             clock("clock-older", "2026-08-16T09:00:00+02:00"),
             clock("clock-newer", "2026-08-16T10:00:00+02:00")
         ));
@@ -75,7 +79,7 @@ class ClockServiceRetrievalTest {
             .containsExactly("clock-newer", "clock-older");
         assertThat(result.orElseThrow().totalElements()).isEqualTo(2);
         then(siteRepository).should().findById(SITE_ID);
-        then(store).should().findAll("clocks", ValidatedClockEvent.class);
+        then(clockEventRepository).should().findAll();
     }
 
     @Test
@@ -83,7 +87,7 @@ class ClockServiceRetrievalTest {
         // Given
         ClockService clockService = clockService();
         given(siteRepository.findById(SITE_ID)).willReturn(Optional.of(siteWithTeamChange()));
-        given(store.findAll("clocks", ValidatedClockEvent.class)).willReturn(List.of(
+        given(clockEventRepository.findAll()).willReturn(List.of(
             clock("clock-boundary", "2026-08-16T23:30:00Z")
         ));
 
@@ -115,7 +119,7 @@ class ClockServiceRetrievalTest {
             "Employee One",
             "+27115550100"
         )));
-        given(store.findAll("clocks", ValidatedClockEvent.class)).willReturn(List.of(
+        given(clockEventRepository.findAll()).willReturn(List.of(
             clock("clock-a", "2026-08-16T09:00:00+02:00"),
             clock("clock-b", "2026-08-16T09:00:00+02:00")
         ));
@@ -130,7 +134,15 @@ class ClockServiceRetrievalTest {
     }
 
     private ClockService clockService() {
-        return new ClockService(store, siteRepository, employeeRepository, instantMessagingClient, auditWriter, auditMapper);
+        return new ClockService(
+            clockEventRepository,
+            siteRepository,
+            employeeRepository,
+            transactionRepository,
+            instantMessagingClient,
+            auditWriter,
+            auditMapper
+        );
     }
 
     private Site site() {

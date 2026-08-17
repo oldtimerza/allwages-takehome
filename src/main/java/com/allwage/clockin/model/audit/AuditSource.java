@@ -1,4 +1,4 @@
-package com.allwage.clockin.model;
+package com.allwage.clockin.model.audit;
 
 /**
  * Origin of an audited action.

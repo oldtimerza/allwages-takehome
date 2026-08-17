@@ -1,9 +1,9 @@
 package com.allwage.clockin.repository.audit;
 
-import com.allwage.clockin.model.AuditEvent;
-import com.allwage.clockin.model.AuditEventPage;
-import com.allwage.clockin.model.AuditEventPageQuery;
-import com.allwage.clockin.model.AuditEventType;
+import com.allwage.clockin.model.audit.AuditEvent;
+import com.allwage.clockin.model.audit.AuditEventPage;
+import com.allwage.clockin.model.audit.AuditEventPageQuery;
+import com.allwage.clockin.model.audit.AuditEventType;
 
 import java.util.List;
 

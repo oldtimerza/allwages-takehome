@@ -1,10 +1,10 @@
 package com.allwage.clockin.controller.audit;
 
 import com.allwage.clockin.controller.clock.ClockController;
-import com.allwage.clockin.model.AuditEventType;
-import com.allwage.clockin.model.AuditReasonCode;
-import com.allwage.clockin.model.AuditSource;
-import com.allwage.clockin.model.ClockAuditPayload;
+import com.allwage.clockin.model.audit.AuditEventType;
+import com.allwage.clockin.model.audit.AuditReasonCode;
+import com.allwage.clockin.model.audit.AuditSource;
+import com.allwage.clockin.model.audit.ClockAuditPayload;
 import com.allwage.clockin.service.audit.AuditDraft;
 import com.allwage.clockin.service.audit.AuditWriter;
 import org.springframework.http.ResponseEntity;

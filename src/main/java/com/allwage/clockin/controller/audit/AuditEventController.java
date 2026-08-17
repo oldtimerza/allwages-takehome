@@ -1,10 +1,10 @@
 package com.allwage.clockin.controller.audit;
 
-import com.allwage.clockin.model.AuditEvent;
-import com.allwage.clockin.model.AuditEventPage;
-import com.allwage.clockin.model.AuditEventPageQuery;
-import com.allwage.clockin.model.ClockAuditPayload;
-import com.allwage.clockin.service.AuditEventService;
+import com.allwage.clockin.model.audit.AuditEvent;
+import com.allwage.clockin.model.audit.AuditEventPage;
+import com.allwage.clockin.model.audit.AuditEventPageQuery;
+import com.allwage.clockin.model.audit.ClockAuditPayload;
+import com.allwage.clockin.service.audit.AuditEventService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;

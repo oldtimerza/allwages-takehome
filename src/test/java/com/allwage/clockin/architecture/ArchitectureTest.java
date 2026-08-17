@@ -30,7 +30,7 @@ class ArchitectureTest {
         .layer("Store").definedBy("..repository.store..")
         .layer("Model").definedBy("..model..")
         .whereLayer("Controller").mayOnlyAccessLayers("Service", "Model")
-        .whereLayer("Service").mayOnlyAccessLayers("Client", "Repository", "Store", "Model")
+        .whereLayer("Service").mayOnlyAccessLayers("Client", "Repository", "Model")
         .whereLayer("Repository").mayOnlyAccessLayers("Store", "Model")
         .whereLayer("Client").mayNotAccessAnyLayer()
         .whereLayer("Store").mayNotAccessAnyLayer()

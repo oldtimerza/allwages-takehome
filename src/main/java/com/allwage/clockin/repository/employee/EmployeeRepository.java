@@ -1,6 +1,6 @@
 package com.allwage.clockin.repository.employee;
 
-import com.allwage.clockin.model.Employee;
+import com.allwage.clockin.model.employee.Employee;
 
 import java.util.Optional;
 

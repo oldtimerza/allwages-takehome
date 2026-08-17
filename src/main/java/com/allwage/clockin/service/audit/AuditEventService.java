@@ -1,7 +1,7 @@
-package com.allwage.clockin.service;
+package com.allwage.clockin.service.audit;
 
-import com.allwage.clockin.model.AuditEventPage;
-import com.allwage.clockin.model.AuditEventPageQuery;
+import com.allwage.clockin.model.audit.AuditEventPage;
+import com.allwage.clockin.model.audit.AuditEventPageQuery;
 import com.allwage.clockin.repository.audit.AuditEventRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

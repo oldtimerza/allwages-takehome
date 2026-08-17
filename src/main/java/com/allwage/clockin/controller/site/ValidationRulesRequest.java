@@ -1,7 +1,7 @@
 package com.allwage.clockin.controller.site;
 
-import com.allwage.clockin.model.StrictModeHours;
-import com.allwage.clockin.model.ValidationRules;
+import com.allwage.clockin.model.Site.StrictModeHours;
+import com.allwage.clockin.model.Site.ValidationRules;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

@@ -1,6 +1,6 @@
 package com.allwage.clockin.controller.site;
 
-import com.allwage.clockin.model.Team;
+import com.allwage.clockin.model.Site.Team;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 

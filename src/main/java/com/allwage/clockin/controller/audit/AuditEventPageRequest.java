@@ -1,6 +1,6 @@
 package com.allwage.clockin.controller.audit;
 
-import com.allwage.clockin.model.AuditEventType;
+import com.allwage.clockin.model.audit.AuditEventType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 

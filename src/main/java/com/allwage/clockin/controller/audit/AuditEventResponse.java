@@ -1,8 +1,8 @@
 package com.allwage.clockin.controller.audit;
 
-import com.allwage.clockin.model.AuditEventType;
-import com.allwage.clockin.model.AuditReasonCode;
-import com.allwage.clockin.model.AuditSource;
+import com.allwage.clockin.model.audit.AuditEventType;
+import com.allwage.clockin.model.audit.AuditReasonCode;
+import com.allwage.clockin.model.audit.AuditSource;
 
 import java.time.Instant;
 

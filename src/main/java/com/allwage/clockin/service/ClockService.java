@@ -1,19 +1,20 @@
 package com.allwage.clockin.service;
 
 import com.allwage.clockin.client.InstantMessagingClient;
-import com.allwage.clockin.model.ClockEvent;
-import com.allwage.clockin.model.ClockPage;
-import com.allwage.clockin.model.ClockPageQuery;
-import com.allwage.clockin.model.ClockValidationResult;
-import com.allwage.clockin.model.Employee;
-import com.allwage.clockin.model.GeoCoordinate;
-import com.allwage.clockin.model.GeofenceCircle;
-import com.allwage.clockin.model.ResolvedValidationRules;
-import com.allwage.clockin.model.Site;
-import com.allwage.clockin.model.ValidatedClockEvent;
+import com.allwage.clockin.model.clock.ClockEvent;
+import com.allwage.clockin.model.clock.ClockPage;
+import com.allwage.clockin.model.clock.ClockPageQuery;
+import com.allwage.clockin.model.clock.ClockValidationResult;
+import com.allwage.clockin.model.employee.Employee;
+import com.allwage.clockin.model.Site.GeoCoordinate;
+import com.allwage.clockin.model.Site.GeofenceCircle;
+import com.allwage.clockin.model.Site.ResolvedValidationRules;
+import com.allwage.clockin.model.Site.Site;
+import com.allwage.clockin.model.Site.ValidatedClockEvent;
+import com.allwage.clockin.repository.clock.ClockEventRepository;
 import com.allwage.clockin.repository.employee.EmployeeRepository;
 import com.allwage.clockin.repository.site.SiteRepository;
-import com.allwage.clockin.repository.store.DocumentStore;
+import com.allwage.clockin.repository.transaction.TransactionRepository;
 import com.allwage.clockin.service.audit.AuditWriter;
 import com.allwage.clockin.service.audit.Audited;
 import com.allwage.clockin.service.audit.ClockProcessingAuditMapper;
@@ -39,24 +40,27 @@ public class ClockService {
 
     private static final Logger log = LoggerFactory.getLogger(ClockService.class);
 
-    private final DocumentStore store;
+    private final ClockEventRepository clockEventRepository;
     private final SiteRepository siteRepository;
     private final EmployeeRepository employeeRepository;
+    private final TransactionRepository transactionRepository;
     private final InstantMessagingClient instantMessagingClient;
     private final AuditWriter auditWriter;
     private final ClockProcessingAuditMapper auditMapper;
 
     public ClockService(
-        @NonNull DocumentStore store,
+        @NonNull ClockEventRepository clockEventRepository,
         @NonNull SiteRepository siteRepository,
         @NonNull EmployeeRepository employeeRepository,
+        @NonNull TransactionRepository transactionRepository,
         @NonNull InstantMessagingClient instantMessagingClient,
         @NonNull AuditWriter auditWriter,
         @NonNull ClockProcessingAuditMapper auditMapper
     ) {
-        this.store = store;
+        this.clockEventRepository = clockEventRepository;
         this.siteRepository = siteRepository;
         this.employeeRepository = employeeRepository;
+        this.transactionRepository = transactionRepository;
         this.instantMessagingClient = instantMessagingClient;
         this.auditWriter = auditWriter;
         this.auditMapper = auditMapper;
@@ -86,14 +90,14 @@ public class ClockService {
      * Find a clock event by ID.
      */
     public @NonNull Optional<ValidatedClockEvent> findById(@NonNull String id) {
-        return store.findById("clocks", id, ValidatedClockEvent.class);
+        return clockEventRepository.findById(id);
     }
 
     /**
      * Get all clock events.
      */
     public @NonNull List<ValidatedClockEvent> findAll() {
-        return store.findAll("clocks", ValidatedClockEvent.class);
+        return clockEventRepository.findAll();
     }
 
     /**
@@ -186,7 +190,7 @@ public class ClockService {
     }
 
     private List<ValidatedClockEvent> clocks() {
-        return store.findAll("clocks", ValidatedClockEvent.class);
+        return clockEventRepository.findAll();
     }
 
     private boolean assignedToTeam(Site site, ValidatedClockEvent clock, String teamId) {
@@ -248,8 +252,8 @@ public class ClockService {
     }
 
     private ValidatedClockEvent persist(ValidatedClockEvent clockEvent) {
-        return store.executeAtomically(() -> {
-            store.save("clocks", clockEvent.clockEvent().id(), clockEvent);
+        return transactionRepository.executeAtomically(() -> {
+            clockEventRepository.save(clockEvent);
             auditWriter.append(auditMapper.auditFor(clockEvent));
             return clockEvent;
         });

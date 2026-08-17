@@ -1,12 +1,12 @@
 package com.allwage.clockin.service.audit;
 
-import com.allwage.clockin.model.AuditEventType;
-import com.allwage.clockin.model.AuditReasonCode;
-import com.allwage.clockin.model.AuditSource;
-import com.allwage.clockin.model.ClockAuditPayload;
-import com.allwage.clockin.model.ClockEvent;
-import com.allwage.clockin.model.ClockValidationResult;
-import com.allwage.clockin.model.ValidatedClockEvent;
+import com.allwage.clockin.model.audit.AuditEventType;
+import com.allwage.clockin.model.audit.AuditReasonCode;
+import com.allwage.clockin.model.audit.AuditSource;
+import com.allwage.clockin.model.audit.ClockAuditPayload;
+import com.allwage.clockin.model.clock.ClockEvent;
+import com.allwage.clockin.model.clock.ClockValidationResult;
+import com.allwage.clockin.model.Site.ValidatedClockEvent;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;

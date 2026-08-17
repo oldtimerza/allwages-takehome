@@ -1,14 +1,14 @@
 package com.allwage.clockin.controller.clock;
 
-import com.allwage.clockin.model.ClockEvent;
-import com.allwage.clockin.model.ClockValidationResult;
-import com.allwage.clockin.model.Employee;
-import com.allwage.clockin.model.GeoCoordinate;
-import com.allwage.clockin.model.GeofenceCircle;
-import com.allwage.clockin.model.Site;
-import com.allwage.clockin.model.SiteAssignment;
-import com.allwage.clockin.model.Team;
-import com.allwage.clockin.model.ValidatedClockEvent;
+import com.allwage.clockin.model.clock.ClockEvent;
+import com.allwage.clockin.model.clock.ClockValidationResult;
+import com.allwage.clockin.model.employee.Employee;
+import com.allwage.clockin.model.Site.GeoCoordinate;
+import com.allwage.clockin.model.Site.GeofenceCircle;
+import com.allwage.clockin.model.Site.Site;
+import com.allwage.clockin.model.Site.SiteAssignment;
+import com.allwage.clockin.model.Site.Team;
+import com.allwage.clockin.model.Site.ValidatedClockEvent;
 import com.allwage.clockin.repository.store.DocumentStore;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;

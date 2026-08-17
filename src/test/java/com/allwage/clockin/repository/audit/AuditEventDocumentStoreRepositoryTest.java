@@ -1,12 +1,12 @@
 package com.allwage.clockin.repository.audit;
 
-import com.allwage.clockin.model.AuditEvent;
-import com.allwage.clockin.model.AuditEventPage;
-import com.allwage.clockin.model.AuditEventPageQuery;
-import com.allwage.clockin.model.AuditEventType;
-import com.allwage.clockin.model.AuditReasonCode;
-import com.allwage.clockin.model.AuditSource;
-import com.allwage.clockin.model.ClockAuditPayload;
+import com.allwage.clockin.model.audit.AuditEvent;
+import com.allwage.clockin.model.audit.AuditEventPage;
+import com.allwage.clockin.model.audit.AuditEventPageQuery;
+import com.allwage.clockin.model.audit.AuditEventType;
+import com.allwage.clockin.model.audit.AuditReasonCode;
+import com.allwage.clockin.model.audit.AuditSource;
+import com.allwage.clockin.model.audit.ClockAuditPayload;
 import com.allwage.clockin.repository.store.DocumentStore;
 import org.junit.jupiter.api.Test;
 
