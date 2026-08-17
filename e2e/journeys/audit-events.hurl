@@ -2,29 +2,30 @@
 POST {{base_url}}/api/sites
 Content-Type: application/json
 {
-  "id": "e2e-audit-events-site",
   "name": "E2E Audit Events Farm",
   "validationRules": null
 }
 HTTP 201
+[Captures]
+site_id: jsonpath "$.id"
 [Asserts]
-jsonpath "$.id" == "e2e-audit-events-site"
+jsonpath "$.id" matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
 POST {{base_url}}/api/employees
 Content-Type: application/json
 {
-  "id": "e2e-audit-events-employee",
   "name": "E2E Audit Events Employee",
   "phoneNumber": "+27115550120"
 }
 HTTP 201
+[Captures]
+employee_id: jsonpath "$.id"
 [Asserts]
-jsonpath "$.id" == "e2e-audit-events-employee"
+jsonpath "$.id" matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
-POST {{base_url}}/api/sites/e2e-audit-events-site/geofences
+POST {{base_url}}/api/sites/{{site_id}}/geofences
 Content-Type: application/json
 {
-  "id": "e2e-audit-events-primary-zone",
   "latitude": -26.2041,
   "longitude": 28.0473,
   "radiusMeters": 100,
@@ -33,38 +34,41 @@ Content-Type: application/json
   "effectiveTo": null
 }
 HTTP 201
+[Captures]
+geofence_id: jsonpath "$.id"
 [Asserts]
-jsonpath "$.id" == "e2e-audit-events-primary-zone"
+jsonpath "$.id" matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 jsonpath "$.primary" == true
 
-POST {{base_url}}/api/sites/e2e-audit-events-site/teams
+POST {{base_url}}/api/sites/{{site_id}}/teams
 Content-Type: application/json
 {
-  "id": "e2e-audit-events-team",
   "name": "E2E Audit Events Team",
   "validationRules": null
 }
 HTTP 201
+[Captures]
+team_id: jsonpath "$.id"
 [Asserts]
-jsonpath "$.id" == "e2e-audit-events-team"
+jsonpath "$.id" matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
-POST {{base_url}}/api/sites/e2e-audit-events-site/teams/e2e-audit-events-team/assignments
+POST {{base_url}}/api/sites/{{site_id}}/teams/{{team_id}}/assignments
 Content-Type: application/json
 {
-  "employeeId": "e2e-audit-events-employee",
+  "employeeId": "{{employee_id}}",
   "effectiveFrom": "2026-01-01",
   "validationRules": null
 }
 HTTP 201
 [Asserts]
-jsonpath "$.employeeId" == "e2e-audit-events-employee"
-jsonpath "$.teamId" == "e2e-audit-events-team"
+jsonpath "$.employeeId" == "{{employee_id}}"
+jsonpath "$.teamId" == "{{team_id}}"
 
 # Submit an accepted attempt first.
 POST {{base_url}}/api/clocks
 Content-Type: application/json
 {
-  "employeeId": "e2e-audit-events-employee",
+  "employeeId": "{{employee_id}}",
   "timestamp": "2026-08-16T09:00:00+02:00",
   "latitude": -26.2041,
   "longitude": 28.0473,
@@ -79,7 +83,7 @@ jsonpath "$.validationResult.decision" == "ACCEPTED"
 POST {{base_url}}/api/clocks
 Content-Type: application/json
 {
-  "employeeId": "e2e-audit-events-employee",
+  "employeeId": "{{employee_id}}",
   "timestamp": "2026-08-16T09:01:00+02:00",
   "latitude": -26.2141,
   "longitude": 28.0473,
@@ -95,7 +99,7 @@ jsonpath "$.validationResult.reason" == "OUTSIDE_GEOFENCE"
 POST {{base_url}}/api/clocks
 Content-Type: application/json
 {
-  "employeeId": "e2e-audit-events-employee",
+  "employeeId": "{{employee_id}}",
   "timestamp": "2099-08-16T09:02:00+02:00",
   "latitude": -26.2041,
   "longitude": 28.0473,
@@ -113,7 +117,7 @@ HTTP 200
 [Asserts]
 jsonpath "$.entries" count == 1
 jsonpath "$.entries[0].type" == "CLOCK_REJECTED"
-jsonpath "$.entries[0].employeeId" == "e2e-audit-events-employee"
+jsonpath "$.entries[0].employeeId" == "{{employee_id}}"
 jsonpath "$.entries[0].reasonCode" == "FUTURE_TIMESTAMP"
 jsonpath "$.entries[0].source" == "MOBILE_API"
 jsonpath "$.entries[0].httpStatus" == 200

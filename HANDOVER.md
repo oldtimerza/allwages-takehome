@@ -38,6 +38,8 @@
 - Notification delivery is synchronous and best-effort. A timeout may leave the service unable to know whether the provider accepted the message, and no retry exists.
 - Clock and audit paging scan the in-memory store and use offset pagination, which is unsuitable for large or concurrently changing production datasets.
 - All APIs are unauthenticated.
+- No API contracts , these would certainly help with integrating other services easier and provide a decouple if needed for frontend to develop against if backend was still in development.
+- No metrics to track performance or trace across service boudanries in a distributed system.
 
 ## Release recommendation
 
@@ -45,7 +47,7 @@
 
 ## AI tools used
 
-I used OpenCode agent workflows, including repository exploration, code review guidance, Maven/Hurl workflow guidance, and architectural rules.
+I used OpenCode multiple agents ruinning on worktrees inside a Herdr terminal, including repository exploration, code review guidance, Maven/Hurl workflow guidance, and architectural rules.
 
 One meaningful AI-assisted decision was the reusable `@Audited` AOP design. I reviewed and changed the successful clock-processing path so that the clock and its success audit are persisted within `DocumentStore.executeAtomically`, rather than relying on a separate post-success audit write. I reviewed focused clock, audit, controller, repository, and Hurl test coverage. Before submission, I would run and record successful Maven and Hurl results.
 

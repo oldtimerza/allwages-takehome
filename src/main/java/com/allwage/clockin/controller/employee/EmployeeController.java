@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 /**
  * REST controller for employee registration.
  */
@@ -25,16 +27,16 @@ public class EmployeeController {
     }
 
     /**
-     * Creates an employee with a stable identifier.
+     * Creates an employee with a server-generated identifier.
      *
      * @param request employee details
-     * @return the created employee, or conflict when the identifier is already in use
+     * @return created employee
      */
     @PostMapping
     public @NonNull ResponseEntity<EmployeeResponse> createEmployee(
         @Valid @RequestBody CreateEmployeeRequest request
     ) {
-        Employee employee = new Employee(request.id(), request.name(), request.phoneNumber());
+        Employee employee = new Employee(UUID.randomUUID().toString(), request.name(), request.phoneNumber());
         return employeeService.createEmployee(employee)
             .map(created -> ResponseEntity.status(HttpStatus.CREATED).body(employeeResponse(created)))
             .orElseGet(() -> ResponseEntity.status(HttpStatus.CONFLICT).build());

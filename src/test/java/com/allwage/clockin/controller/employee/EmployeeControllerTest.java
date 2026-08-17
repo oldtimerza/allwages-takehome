@@ -18,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class EmployeeControllerTest {
 
+    private static final String UUID_PATTERN = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+
     @Autowired
     private TestRestTemplate restTemplate;
 
@@ -34,7 +36,6 @@ class EmployeeControllerTest {
         // Given
         String requestBody = """
             {
-                "id": "employee-1",
                 "name": "Ada Lovelace",
                 "phoneNumber": "+27115550100"
             }
@@ -49,35 +50,12 @@ class EmployeeControllerTest {
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isEqualTo(new EmployeeResponse("employee-1", "Ada Lovelace", "+27115550100"));
-        assertThat(store.findById("employees", "employee-1", Employee.class)).contains(
-            new Employee("employee-1", "Ada Lovelace", "+27115550100")
-        );
-    }
-
-    @Test
-    void rejectsDuplicateEmployeeWithoutOverwritingIt() {
-        // Given
-        store.save("employees", "employee-1", new Employee("employee-1", "Ada Lovelace", "+27115550100"));
-        String requestBody = """
-            {
-                "id": "employee-1",
-                "name": "Grace Hopper",
-                "phoneNumber": "+27115550101"
-            }
-            """;
-
-        // When
-        ResponseEntity<Void> response = restTemplate.postForEntity(
-            "/api/employees",
-            new HttpEntity<>(requestBody, jsonHeaders()),
-            Void.class
-        );
-
-        // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(store.findById("employees", "employee-1", Employee.class)).contains(
-            new Employee("employee-1", "Ada Lovelace", "+27115550100")
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().id()).matches(UUID_PATTERN);
+        assertThat(response.getBody().name()).isEqualTo("Ada Lovelace");
+        assertThat(response.getBody().phoneNumber()).isEqualTo("+27115550100");
+        assertThat(store.findById("employees", response.getBody().id(), Employee.class)).contains(
+            new Employee(response.getBody().id(), "Ada Lovelace", "+27115550100")
         );
     }
 
@@ -86,7 +64,6 @@ class EmployeeControllerTest {
         // Given
         String requestBody = """
             {
-                "id": "employee-1",
                 "name": "",
                 "phoneNumber": "+27115550100"
             }
@@ -101,7 +78,7 @@ class EmployeeControllerTest {
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(store.findById("employees", "employee-1", Employee.class)).isEmpty();
+        assertThat(store.findAll("employees", Employee.class)).isEmpty();
     }
 
     private static HttpHeaders jsonHeaders() {

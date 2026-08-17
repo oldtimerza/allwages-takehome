@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * REST controller for managing site-owned validation-rule configurations.
@@ -37,12 +38,12 @@ public class SiteController {
      * Creates an empty site aggregate.
      *
      * @param request site details
-     * @return created site, or conflict when the identifier is already in use
+     * @return created site with a server-generated identifier
      */
     @PostMapping
     public @NonNull ResponseEntity<SiteResponse> createSite(@Valid @RequestBody CreateSiteRequest request) {
         Site site = new Site(
-            request.id(),
+            UUID.randomUUID().toString(),
             request.name(),
             request.validationRules() == null ? null : new ValidationRules(
                 request.validationRules().toleranceMeters(),
@@ -71,7 +72,7 @@ public class SiteController {
         @Valid @RequestBody CreateGeofenceRequest request
     ) {
         GeofenceCircle geofence = new GeofenceCircle(
-            request.id(),
+            UUID.randomUUID().toString(),
             new GeoCoordinate(request.latitude(), request.longitude()),
             request.radiusMeters(),
             request.primary(),
@@ -95,7 +96,12 @@ public class SiteController {
         @PathVariable String siteId,
         @Valid @RequestBody CreateTeamRequest request
     ) {
-        return siteService.addTeam(siteId, request.toModel())
+        Team newTeam = new Team(
+            UUID.randomUUID().toString(),
+            request.name(),
+            request.validationRules() == null ? null : request.validationRules().toModel()
+        );
+        return siteService.addTeam(siteId, newTeam)
             .map(team -> ResponseEntity.status(HttpStatus.CREATED).body(team))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }

@@ -2,44 +2,35 @@
 POST {{base_url}}/api/sites
 Content-Type: application/json
 {
-  "id": "e2e-site-configuration",
   "name": "E2E Farm",
   "validationRules": null
 }
 HTTP 201
+[Captures]
+site_id: jsonpath "$.id"
 [Asserts]
-jsonpath "$.id" == "e2e-site-configuration"
+jsonpath "$.id" matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 jsonpath "$.name" == "E2E Farm"
 
 # Register the employee before assigning them to the site team.
 POST {{base_url}}/api/employees
 Content-Type: application/json
 {
-  "id": "e2e-employee-configuration",
   "name": "E2E Employee",
   "phoneNumber": "+27115550100"
 }
 HTTP 201
+[Captures]
+employee_id: jsonpath "$.id"
 [Asserts]
-jsonpath "$.id" == "e2e-employee-configuration"
+jsonpath "$.id" matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 jsonpath "$.name" == "E2E Employee"
 jsonpath "$.phoneNumber" == "+27115550100"
 
-# The employee identifier remains unique for the life of the application.
-POST {{base_url}}/api/employees
-Content-Type: application/json
-{
-  "id": "e2e-employee-configuration",
-  "name": "Duplicate E2E Employee",
-  "phoneNumber": "+27115550101"
-}
-HTTP 409
-
 # Configure the primary location where the team works.
-POST {{base_url}}/api/sites/e2e-site-configuration/geofences
+POST {{base_url}}/api/sites/{{site_id}}/geofences
 Content-Type: application/json
 {
-  "id": "e2e-primary-zone",
   "latitude": -26.2041,
   "longitude": 28.0473,
   "radiusMeters": 100,
@@ -48,37 +39,40 @@ Content-Type: application/json
   "effectiveTo": null
 }
 HTTP 201
+[Captures]
+geofence_id: jsonpath "$.id"
 [Asserts]
-jsonpath "$.id" == "e2e-primary-zone"
+jsonpath "$.id" matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 jsonpath "$.primary" == true
 
 # Add the team and assign the registered employee to it.
-POST {{base_url}}/api/sites/e2e-site-configuration/teams
+POST {{base_url}}/api/sites/{{site_id}}/teams
 Content-Type: application/json
 {
-  "id": "e2e-harvest-team",
   "name": "E2E Harvest Team",
   "validationRules": null
 }
 HTTP 201
+[Captures]
+team_id: jsonpath "$.id"
 [Asserts]
-jsonpath "$.id" == "e2e-harvest-team"
+jsonpath "$.id" matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 jsonpath "$.name" == "E2E Harvest Team"
 
-POST {{base_url}}/api/sites/e2e-site-configuration/teams/e2e-harvest-team/assignments
+POST {{base_url}}/api/sites/{{site_id}}/teams/{{team_id}}/assignments
 Content-Type: application/json
 {
-  "employeeId": "e2e-employee-configuration",
+  "employeeId": "{{employee_id}}",
   "effectiveFrom": "2026-01-01",
   "validationRules": null
 }
 HTTP 201
 [Asserts]
-jsonpath "$.employeeId" == "e2e-employee-configuration"
-jsonpath "$.teamId" == "e2e-harvest-team"
+jsonpath "$.employeeId" == "{{employee_id}}"
+jsonpath "$.teamId" == "{{team_id}}"
 
 # Verify independent validation-rule configuration at every supported scope.
-PUT {{base_url}}/api/sites/e2e-site-configuration/validation-rules
+PUT {{base_url}}/api/sites/{{site_id}}/validation-rules
 Content-Type: application/json
 {
   "toleranceMeters": 50,
@@ -98,7 +92,7 @@ jsonpath "$.toleranceMeters" == 50
 jsonpath "$.approvalRequired" == false
 jsonpath "$.strictModeHours[0].toleranceMeters" == 10
 
-PUT {{base_url}}/api/sites/e2e-site-configuration/teams/e2e-harvest-team/validation-rules
+PUT {{base_url}}/api/sites/{{site_id}}/teams/{{team_id}}/validation-rules
 Content-Type: application/json
 {
   "toleranceMeters": 40,
@@ -110,7 +104,7 @@ HTTP 200
 jsonpath "$.toleranceMeters" == 40
 jsonpath "$.approvalRequired" == true
 
-PUT {{base_url}}/api/sites/e2e-site-configuration/employees/e2e-employee-configuration/validation-rules
+PUT {{base_url}}/api/sites/{{site_id}}/employees/{{employee_id}}/validation-rules
 Content-Type: application/json
 {
   "effectiveFrom": "2026-01-01",

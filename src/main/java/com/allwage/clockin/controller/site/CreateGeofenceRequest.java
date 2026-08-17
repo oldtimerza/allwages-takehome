@@ -3,7 +3,6 @@ package com.allwage.clockin.controller.site;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
@@ -12,9 +11,6 @@ import java.time.LocalDate;
  * Creates a circular geofence owned by one site.
  */
 public record CreateGeofenceRequest(
-    @NotBlank(message = "Geofence ID is required")
-    String id,
-
     @NotNull(message = "Latitude is required")
     @DecimalMin(value = "-90.0", message = "Latitude must be between -90 and 90")
     @DecimalMax(value = "90.0", message = "Latitude must be between -90 and 90")

@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SiteControllerTest {
 
     private static final LocalDate ASSIGNMENT_START = LocalDate.of(2026, 1, 1);
+    private static final String UUID_PATTERN = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -47,7 +48,6 @@ class SiteControllerTest {
             "/api/sites",
             """
                 {
-                    "id": "site-2",
                     "name": "Farm Bravo",
                     "validationRules": null
                 }
@@ -56,30 +56,12 @@ class SiteControllerTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isEqualTo(new SiteResponse("site-2", "Farm Bravo"));
-        assertThat(store.findById("sites", "site-2", Site.class)).contains(
-            new Site("site-2", "Farm Bravo", null, List.of(), List.of(), List.of())
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().id()).matches(UUID_PATTERN);
+        assertThat(response.getBody().name()).isEqualTo("Farm Bravo");
+        assertThat(store.findById("sites", response.getBody().id(), Site.class)).contains(
+            new Site(response.getBody().id(), "Farm Bravo", null, List.of(), List.of(), List.of())
         );
-    }
-
-    @Test
-    void rejectsDuplicateSiteWithoutOverwritingIt() {
-        store.save("sites", "site-1", site());
-
-        ResponseEntity<Void> response = create(
-            "/api/sites",
-            """
-                {
-                    "id": "site-1",
-                    "name": "Replacement Farm",
-                    "validationRules": null
-                }
-                """,
-            Void.class
-        );
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(store.findById("sites", "site-1", Site.class)).contains(site());
     }
 
     @Test
@@ -90,7 +72,6 @@ class SiteControllerTest {
             "/api/sites/site-1/geofences",
             """
                 {
-                    "id": "zone-1",
                     "latitude": -26.2041,
                     "longitude": 28.0473,
                     "radiusMeters": 100,
@@ -103,12 +84,12 @@ class SiteControllerTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isEqualTo(new GeofenceResponse(
-            "zone-1", -26.2041, 28.0473, 100, true, LocalDate.of(2026, 2, 1), null
-        ));
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().id()).matches(UUID_PATTERN);
+        assertThat(response.getBody().primary()).isTrue();
         Site savedSite = store.findById("sites", "site-1", Site.class).orElseThrow();
         assertThat(savedSite.geofences()).containsExactly(new GeofenceCircle(
-            "zone-1", new GeoCoordinate(-26.2041, 28.0473), 100, true, LocalDate.of(2026, 2, 1), null
+            response.getBody().id(), new GeoCoordinate(-26.2041, 28.0473), 100, true, LocalDate.of(2026, 2, 1), null
         ));
     }
 
@@ -118,7 +99,6 @@ class SiteControllerTest {
             "/api/sites/unknown-site/geofences",
             """
                 {
-                    "id": "zone-1",
                     "latitude": -26.2041,
                     "longitude": 28.0473,
                     "radiusMeters": 100,
@@ -141,7 +121,6 @@ class SiteControllerTest {
             "/api/sites/site-1/geofences",
             """
                 {
-                    "id": "zone-1",
                     "latitude": 91,
                     "longitude": 28.0473,
                     "radiusMeters": 0,
@@ -168,39 +147,10 @@ class SiteControllerTest {
             "/api/sites/site-1/geofences",
             """
                 {
-                    "id": "zone-2",
                     "latitude": -26.2041,
                     "longitude": 28.0473,
                     "radiusMeters": 100,
                     "primary": true,
-                    "effectiveFrom": "2026-02-01",
-                    "effectiveTo": null
-                }
-                """,
-            Void.class
-        );
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(store.findById("sites", "site-1", Site.class).orElseThrow().geofences())
-            .containsExactly(existingGeofence);
-    }
-
-    @Test
-    void rejectsDuplicateGeofenceWithoutChangingTheSite() {
-        GeofenceCircle existingGeofence = new GeofenceCircle(
-            "zone-1", new GeoCoordinate(-26.2041, 28.0473), 100, false, LocalDate.of(2026, 1, 1), null
-        );
-        store.save("sites", "site-1", site().addGeofence(existingGeofence));
-
-        ResponseEntity<Void> response = create(
-            "/api/sites/site-1/geofences",
-            """
-                {
-                    "id": "zone-1",
-                    "latitude": -26.2041,
-                    "longitude": 28.0473,
-                    "radiusMeters": 100,
-                    "primary": false,
                     "effectiveFrom": "2026-02-01",
                     "effectiveTo": null
                 }
@@ -221,7 +171,6 @@ class SiteControllerTest {
             "/api/sites/site-1/geofences",
             """
                 {
-                    "id": "zone-1",
                     "latitude": -26.2041,
                     "longitude": 28.0473,
                     "radiusMeters": 100,
@@ -245,7 +194,6 @@ class SiteControllerTest {
             "/api/sites/site-1/teams",
             """
                 {
-                    "id": "team-2",
                     "name": "Packing",
                     "validationRules": null
                 }
@@ -254,33 +202,14 @@ class SiteControllerTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isEqualTo(new Team("team-2", "Packing", null));
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().id()).matches(UUID_PATTERN);
+        assertThat(response.getBody().name()).isEqualTo("Packing");
         Site savedSite = store.findById("sites", "site-1", Site.class).orElseThrow();
         assertThat(savedSite.teams()).containsExactly(
             new Team("team-1", "Harvest", null),
-            new Team("team-2", "Packing", null)
+            response.getBody()
         );
-    }
-
-    @Test
-    void rejectsDuplicateTeamAtSite() {
-        store.save("sites", "site-1", site());
-
-        ResponseEntity<Void> response = create(
-            "/api/sites/site-1/teams",
-            """
-                {
-                    "id": "team-1",
-                    "name": "Harvest",
-                    "validationRules": null
-                }
-                """,
-            Void.class
-        );
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        Site savedSite = store.findById("sites", "site-1", Site.class).orElseThrow();
-        assertThat(savedSite.teams()).containsExactly(new Team("team-1", "Harvest", null));
     }
 
     @Test
